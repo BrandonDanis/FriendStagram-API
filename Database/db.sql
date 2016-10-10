@@ -18,18 +18,21 @@ CREATE TABLE users(
 
 DROP TABLE IF EXISTS images;
 CREATE TABLE images(
-	id SERIAL
-	publicKey VARCHAR(255) NOT NULL
+	id SERIAL,
+	publicKey VARCHAR(255) NOT NULL,
+	PRIMARY KEY (id)
 );
 
 DROP TABLE IF EXISTS posts;
 CREATE TABLE posts(
-	id SERIAL
+	id SERIAL,
 	image_id INTEGER,
 	description VARCHAR(250),
 	user_id INTEGER,
+	tag_id INTEGER,
 	FOREIGN KEY(user_id) REFERENCES users(id),
 	FOREIGN KEY(image_id) REFERENCES images(id),
+	FOREIGN KEY(tag_id) REFERENCES tags(id),
 	PRIMARY KEY (id)
 );
 
@@ -41,4 +44,21 @@ CREATE TABLE post_likes (
 	FOREIGN KEY(user_id) REFERENCES users(id),
 	FOREIGN KEY(post_id) REFERENCES posts(id),
 	PRIMARY KEY (id)
+);
+
+DROP TABLE IF EXISTS tags;
+CREATE TABLE tags (
+	id SERIAL,
+	name VARCHAR,
+	PRIMARY KEY(id)
+);
+
+DROP TABLE IF EXISTS post_tags;
+CREATE TABLE post_tags (
+	id SERIAL,
+	post_id INTEGER,
+	tag_id INTEGER,
+	FOREIGN KEY(post_id) REFERENCES posts(id),
+	FOREIGN KEY(tag_id) REFERENCES tags(id),
+	PRIMARY KEY(id)
 );

@@ -1,0 +1,14 @@
+Endpoints Required
+
+==Users==
+1. Login
+2. Logout
+3. Kick all other sessions off
+4. Password change
+5. Search for Users by Name
+
+==Posts==
+1. Get N latest posts
+2. Get N most popular posts (all-time)
+3. Search posts by tags
+4. Get all posts by a specific user

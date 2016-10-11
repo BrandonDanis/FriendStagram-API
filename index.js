@@ -6,22 +6,19 @@ const cfg = require('./config.js');
 const users = require('./user.js');
 const jwt = require('jwt-simple');
 const mongooseUser = require('./model/user.js');
-
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/test');
 
 
 app.use(bodyParser.json());
 app.use(auth.initialize());
 
 app.get('/', function(req,res){
-	res.send('hello world');
-	mongooseUser.user.create({user_name:'Kyle', password:'1234'},function(err,small){
-		if(err)	
-			return console.log(err);
+	mongooseUser.register('jonathan','1234', function(){
+		mongooseUser.findUser('jonathan', ()=> {res.send('hello world')});
 	});
-	var query = mongooseUser.user.find({'user_name':'Kyle'},function(err,docs){
-		console.log('query executed');
-		// console.log(docs);
-	});
+
+	// res.send('hello world');
 });
 
 app.get('/user',auth.authenticate(), function(req,res){

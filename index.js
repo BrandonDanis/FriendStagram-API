@@ -14,11 +14,7 @@ app.use(bodyParser.json());
 app.use(auth.initialize());
 
 app.get('/', function(req,res){
-	mongooseUser.register('jonathan','1234', function(){
-		mongooseUser.findUser('jonathan', ()=> {res.send('hello world')});
-	});
-
-	// res.send('hello world');
+	res.send('hello world');
 });
 
 app.get('/user',auth.authenticate(), function(req,res){

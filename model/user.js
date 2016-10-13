@@ -21,28 +21,22 @@ var userSchema = new Schema({
 var user = mongoose.model('User', userSchema);
 
 module.exports.register = function(username,password,callback){
-	console.log('tryna register');
-	console.log(username + ' '+ password)
 	user.create({'user_name':username, 'password':password},function(err,small){
-		console.log('creating user');
-		if(err){
-			callback();
-			return console.log(err);
-		}
-		callback();
+		callback(err,"Successfully added an user!");
 	});
 };
 
 module.exports.findUser = function(username, callback){
-	console.log('tryna find');
-	console.log(username);
 	user.find({'user_name':username},function(err,docs){
-		if(err){
-			callback();
-			return console.log(err);
-		}
-		console.log(docs);
-		callback();
+		callback(err,docs);
 	});
 };
+
+module.exports.findAllUsers = function(callback){
+	user.find({},function(err,docs){
+		callback(err,docs);
+	});
+};
+
+
 

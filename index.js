@@ -5,6 +5,10 @@ const bodyParser = require('body-parser');
 const cfg = require('./config.js');
 const users = require('./user.js');
 const jwt = require('jwt-simple');
+const mongooseUser = require('./model/user.js');
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/test');
+
 
 app.use(bodyParser.json());
 app.use(auth.initialize());

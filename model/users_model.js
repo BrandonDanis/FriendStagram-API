@@ -3,7 +3,6 @@ var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
-const utils = require('../util.js');
 
 var userSchema = new Schema({
 	// user_id: 		Schema.Types.ObjectID,
@@ -23,21 +22,14 @@ var user = mongoose.model('User', userSchema);
 
 
 
-module.exports.register = (username,password,callback) => {
-	if(utils.isEmpty(username))
-		callback("Username is Null", null)
-	else if(utils.isEmpty(password))
-		callback("Password is Null", null)
-	else
-	{
-		user.create({'user_name': username, 'password': password}, function (err, small) {
-			callback(err, "Successfully added an user!");
-		});
-	}
+module.exports.register = (user_name,password,callback) => {
+	user.create({user_name, password}, function (err, small) {
+		callback(err, "Successfully added an user!");
+	});
 };
 
-module.exports.findUser = (username, callback) => {
-	user.find({'user_name':username},function(err,docs){
+module.exports.findUser = (user_name, callback) => {
+	user.find({user_name},function(err,docs){
 		callback(err,docs);
 	});
 };

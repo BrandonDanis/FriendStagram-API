@@ -10,11 +10,7 @@ module.exports = function(app){
 		});
 	})
 
-	app.post('/users', function(req,res){
-		var user_name = req.body.user_name;
-		var password = req.body.password;
-		console.log('username: '+ user_name);
-		console.log('password: ' +password);
+	app.post('/users', ({body: {user_name = null, password = null}}, res) => {
 		mongooseUser.register(user_name,password,function(err,data){
 			if(err)
 				res.status(500).json({'error':err, 'data': data})

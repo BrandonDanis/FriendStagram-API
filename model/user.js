@@ -23,7 +23,7 @@ var user = mongoose.model('User', userSchema);
 
 
 
-module.exports.register = function(username,password,callback){
+module.exports.register = (username,password,callback) => {
 	if(utils.isEmpty(username))
 		callback("Username is Null", null)
 	else if(utils.isEmpty(password))
@@ -36,13 +36,13 @@ module.exports.register = function(username,password,callback){
 	}
 };
 
-module.exports.findUser = function(username, callback){
+module.exports.findUser = (username, callback) => {
 	user.find({'user_name':username},function(err,docs){
 		callback(err,docs);
 	});
 };
 
-module.exports.findAllUsers = function(callback){
+module.exports.findAllUsers = (callback) => {
 	user.find({},function(err,docs){
 		callback(err,docs);
 	});

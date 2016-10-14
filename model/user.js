@@ -20,10 +20,21 @@ var userSchema = new Schema({
 
 var user = mongoose.model('User', userSchema);
 
+function isEmpty(str) {
+	return (!str || 0 === str.length);
+}
+
 module.exports.register = function(username,password,callback){
-	user.create({'user_name':username, 'password':password},function(err,small){
-		callback(err,"Successfully added an user!");
-	});
+	if(isEmpty(username))
+		callback("Username is Null", null)
+	else if(isEmpty(password))
+		callback("Password is Null", null)
+	else
+	{
+		user.create({'user_name': username, 'password': password}, function (err, small) {
+			callback(err, "Successfully added an user!");
+		});
+	}
 };
 
 module.exports.findUser = function(username, callback){

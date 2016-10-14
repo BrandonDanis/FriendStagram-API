@@ -17,7 +17,7 @@ module.exports = function(app){
 		console.log('password: ' +password);
 		mongooseUser.register(user_name,password,function(err,data){
 			if(err)
-				res.status(400).json({'error':err, 'data': data})
+				res.status(500).json({'error':err, 'data': data})
 			else
 				res.status(201).json({'error':err, 'data': data})
 		})

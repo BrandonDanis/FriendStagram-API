@@ -3,6 +3,7 @@ var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
+const utils = require('../util.js');
 
 var userSchema = new Schema({
 	// user_id: 		Schema.Types.ObjectID,
@@ -20,14 +21,12 @@ var userSchema = new Schema({
 
 var user = mongoose.model('User', userSchema);
 
-function isEmpty(str) {
-	return (!str || 0 === str.length);
-}
+
 
 module.exports.register = function(username,password,callback){
-	if(isEmpty(username))
+	if(utils.isEmpty(username))
 		callback("Username is Null", null)
-	else if(isEmpty(password))
+	else if(utils.isEmpty(password))
 		callback("Password is Null", null)
 	else
 	{

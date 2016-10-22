@@ -25,8 +25,8 @@ module.exports.findUser = (req,res) => {
     mongooseUser.findUser(req.params.id,(err,data) => {
         res.status(err ?
             400 :
-            data.isEmpty() ?
-                404 :
-                202).json({'error':err, 'data': data});
+            data ?
+                202 :
+                404).json({'error':err, 'data': data});
     });
 }

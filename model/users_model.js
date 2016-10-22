@@ -29,7 +29,7 @@ module.exports.register = (user_name,password,callback) => {
 };
 
 module.exports.findUser = (user_id, callback) => {
-	user.find({user_id},function(err,docs){
+	user.findOne({user_id},function(err,docs){
 		callback(err,docs);
 	});
 };

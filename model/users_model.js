@@ -23,7 +23,7 @@ var user = mongoose.model('user', userSchema);
 
 
 module.exports.register = (user_name,password,callback) => {
-	user.create({user_name, password}, function (err, small) {
+	user.create({user_name, password}, function (err, docs) {
 		callback(err, "Successfully added an user!");
 	});
 };
@@ -40,5 +40,9 @@ module.exports.findAllUsers = (callback) => {
 	});
 };
 
-
+module.exports.findUserWithCreds = (user_name, password, callback) => {
+	user.findOne({user_name, password},function (err, docs){
+		callback(err,docs)
+	})
+}
 

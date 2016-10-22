@@ -5,7 +5,7 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 
 var userSchema = new Schema({
-	// user_id: 		Schema.Types.ObjectID,
+	//user_id: 		Schema.Types.ObjectID,
 	user_name: {
 		type: 		String,
 		unique: 	true,
@@ -18,7 +18,7 @@ var userSchema = new Schema({
 	email: 			String
 });
 
-var user = mongoose.model('User', userSchema);
+var user = mongoose.model('user', userSchema);
 
 
 
@@ -28,8 +28,8 @@ module.exports.register = (user_name,password,callback) => {
 	});
 };
 
-module.exports.findUser = (user_name, callback) => {
-	user.find({user_name},function(err,docs){
+module.exports.findUser = (user_id, callback) => {
+	user.find({user_id},function(err,docs){
 		callback(err,docs);
 	});
 };

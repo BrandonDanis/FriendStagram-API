@@ -1,10 +1,10 @@
-const mongooseUser = require('../model/users_model.js');
-const utils = require('../utils/util.js');
+const user = require('../model/users_model');
+const utils = require('../utils/util');
 const jwt = require('jwt-simple');
-const cfg = require('../config.js');
+const cfg = require('../config');
 
 module.exports.findAllUsers = (req,res) => {
-    mongooseUser.findAllUsers(function (err, data) {
+    user.findAllUsers(function (err, data) {
         res.status(err?404:200).json({
             error: err,
             data: data
@@ -25,7 +25,7 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
         });
     else
     {
-        mongooseUser.register(user_name,password,function(err,data){
+        user.register(user_name,password,function(err, data){
             res.status(err?500:201).json({
                 error: err,
                 data: data
@@ -36,7 +36,7 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
 }
 
 module.exports.findUser = (req,res) => {
-    mongooseUser.findUser(req.params.id,(err,data) => {
+    user.findUser(req.params.id,(err, data) => {
         res.status(err ?
             400 :
             data ?
@@ -61,15 +61,18 @@ module.exports.login = (req,res) => {
     else
     {
         //check cache here
-        mongooseUser.findUserWithCreds(username,password,(err,doc) => {
+        user.findUserWithCreds(username,password,(err, doc) => {
             if (err || !doc)
                 return res.status(404).json({
                     error: null,
                     data: 'User name and Password combination does not exist'
                 });
-            var payload = {id: doc._id};
+            var payload = {
+                id: doc._id,
+                user_name: doc.user_name
+            };
             var token = jwt.encode(payload, cfg.jwtSecret);
-            res.status(200).json({token});
+            res.status(200).json({payload,token});
         });
     }
 }

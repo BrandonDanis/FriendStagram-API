@@ -40,6 +40,12 @@ module.exports.findAllUsers = (callback) => {
 	});
 };
 
+module.exports.authenticate = (_id,user_name,callback) => {
+	user.findOne({_id,user_name},function (err,docs){
+		callback(err,docs);
+	})
+}
+
 module.exports.findUserWithCreds = (user_name, password, callback) => {
 	user.findOne({user_name, password},function (err, docs){
 		callback(err,docs)

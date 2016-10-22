@@ -1,5 +1,5 @@
-const mongooseUser = require('../model/users_model.js');
-const users_controller = require('../controllers/users_controller.js');
+const mongooseUser = require('../model/users_model');
+const users_controller = require('../controllers/users_controller');
 
 module.exports = function(app){
 	app.get('/users',users_controller.findAllUsers)

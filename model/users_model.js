@@ -28,8 +28,8 @@ module.exports.register = (user_name,password,callback) => {
 	});
 };
 
-module.exports.findUser = (user_id, callback) => {
-	user.findOne({user_id},function(err,docs){
+module.exports.findUser = (user_name, callback) => {
+	user.findOne({user_name},function(err,docs){
 		callback(err,docs);
 	});
 };

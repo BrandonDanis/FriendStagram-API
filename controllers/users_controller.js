@@ -36,7 +36,7 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
 }
 
 module.exports.findUser = (req,res) => {
-    user.findUser(req.params.id,(err, data) => {
+    user.findUser(req.params.user_name,(err, data) => {
         res.status(err ?
             400 :
             data ?

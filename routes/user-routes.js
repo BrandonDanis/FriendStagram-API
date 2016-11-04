@@ -6,4 +6,5 @@ module.exports = function(app){
 	app.post('/users',users_controller.register)
 	app.get('/user/:user_name',users_controller.findUser)
 	app.post("/login",users_controller.login);
+	app.put('/user/:user_name',users_controller.changeUser)
 };

@@ -52,3 +52,9 @@ module.exports.findUserWithCreds = (user_name, password, callback) => {
 	})
 }
 
+module.exports.changePassword = (user_name,password,new_password,callback) =>{
+	user.update({user_name,password},{password: new_password},function(err,docs){
+		callback(err,docs)
+	})
+}
+

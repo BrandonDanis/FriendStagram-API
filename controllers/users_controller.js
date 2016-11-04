@@ -72,7 +72,29 @@ module.exports.login = (req,res) => {
                 user_name: doc.user_name
             };
             var token = jwt.encode(payload, cfg.jwtSecret);
-            res.status(200).json({payload,token});
+            res.status(200).json({token});
         });
+    }
+}
+
+module.exports.changeUser = (req,res) => {
+    console.log(req.body);
+    if(!utils.isEmpty(req.body.password)){
+        try{
+            var token = req.query.token;
+            var {id, user_name} = jwt.decode(token,cfg.jwtSecret);
+        }
+        catch(e){
+            return res.status(401).json({
+                error: true,
+                data: 'bad token'
+            })
+        }
+        user.changePassword(user_name,req.query.old_password,req.body.password,(err,docs)=>{
+            if(err)
+                res.status(404).json("wrong password");
+            else
+                res.status(200).json("Successfully Changed Password");
+        })
     }
 }

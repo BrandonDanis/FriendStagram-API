@@ -77,24 +77,17 @@ module.exports.login = (req,res) => {
     }
 }
 
-module.exports.changeUser = (req,res) => {
-    console.log(req.body);
-    if(!utils.isEmpty(req.body.password)){
-        try{
-            var token = req.query.token;
-            var {id, user_name} = jwt.decode(token,cfg.jwtSecret);
-        }
-        catch(e){
-            return res.status(401).json({
-                error: true,
-                data: 'bad token'
-            })
-        }
-        user.changePassword(user_name,req.query.old_password,req.body.password,(err,docs)=>{
-            if(err)
-                res.status(404).json("wrong password");
+module.exports.changeUser = (req,res) => {;
+    if(req.body.hasOwnProperty("password")){
+        user.changePassword(req.user.user_name,req.body.password.old,req.body.password.new,(err,docs)=>{
+            if(err || docs.nModified != 1)
+                return res.status(404).json("Wrong Password");
             else
-                res.status(200).json("Successfully Changed Password");
+                return res.status(200).json("Successfully Changed Password");
         })
     }
+    else{
+        res.status(404).json("No Change Requested");
+    }
+
 }

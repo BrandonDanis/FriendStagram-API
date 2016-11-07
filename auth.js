@@ -15,7 +15,6 @@ module.exports.authenticate = (req,res,next) => {
 		})
 	}
 	user.authenticate(id,user_name,(err,docs) => {
-		console.log(docs);
 		if(err || !docs){
 			return res.status(404).json({
 				error: true,
@@ -23,7 +22,6 @@ module.exports.authenticate = (req,res,next) => {
 			})
 		}
 		req.user = {id,user_name};
-		console.log(req.user)
 		next();
 	})
 

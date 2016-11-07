@@ -15,7 +15,12 @@ var userSchema = new Schema({
 		type: 		String,
 		require: 	[true, 'Must Enter a Password']
 	},
-	email: 			String
+	email: 			String,
+	pictures: [
+	{
+		description: String,
+		url: String
+	}]
 });
 
 var user = mongoose.model('user', userSchema);
@@ -58,3 +63,12 @@ module.exports.changePassword = (user_name,password,new_password,callback) =>{
 	})
 }
 
+//POST METHODS
+
+module.exports.addPosts = (_id,description,url,callback) => {
+	user.findByIdAndUpdate(
+		_id,
+		{$push: {"pictures": {description,url}}},
+		callback
+	)
+}

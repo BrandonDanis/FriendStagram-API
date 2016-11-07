@@ -3,7 +3,8 @@ const jwt = require('jwt-simple');
 const user = require('./model/users_model');
 
 
-module.exports.authenticate = ({query: {token}},res,next) => {
+module.exports.authenticate = (req,res,next) => {
+	token = req.query.token;
 	try{
 		var {id, user_name} = jwt.decode(token,cfg.jwtSecret);
 	}
@@ -21,6 +22,8 @@ module.exports.authenticate = ({query: {token}},res,next) => {
 				data: 'User not found'
 			})
 		}
+		req.user = {id,user_name};
+		console.log(req.user)
 		next();
 	})
 

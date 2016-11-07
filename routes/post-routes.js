@@ -1,5 +1,6 @@
+const posts_controller = require("../controllers/posts_controller.js")
+const auth = require("../auth.js")
+
 module.exports = function(app){
-	app.get('/post', function(req,res){
-		res.send('We in posts')
-	})
+	app.post('/posts',auth.authenticate,posts_controller.addPosts);
 };

@@ -7,14 +7,6 @@ mongoose.connect('mongodb://localhost/test');
 
 app.use(bodyParser.json());
 
-app.get('/', function(req,res){
-	res.send('hello world');
-});
-
-app.get('/login',auth.authenticate, function(req,res){
-	res.send('we authenticated');
-});
-
 require('./routes/user-routes')(app);
 require('./routes/post-routes')(app);
 

@@ -4,7 +4,7 @@ const jwt = require('jwt-simple');
 const cfg = require('../config');
 
 module.exports.findAllUsers = (req,res) => {
-    user.findAllUsers(function (err, data) {
+    user.findAllUsers((err, data) =>{
         res.status(err?404:200).json({
             error: err,
             data: data
@@ -25,7 +25,7 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
         });
     else
     {
-        user.register(user_name,password,function(err, data){
+        user.register(user_name,password, (err, data) => {
             res.status(err?500:201).json({
                 error: err,
                 data: data
@@ -67,7 +67,6 @@ module.exports.login = (req,res) => {
                     error: null,
                     data: 'User name and Password combination does not exist'
                 });
-            console.log(doc);
             var payload = {
                 id: doc._id,
                 user_name: doc.user_name,

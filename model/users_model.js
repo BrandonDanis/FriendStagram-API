@@ -30,27 +30,27 @@ var user = mongoose.model('user', userSchema);
 
 
 module.exports.register = (user_name,un_hashed_password,callback) => {
-	bcrypt.hash(un_hashed_password,saltRounds,function(err,password){
-		user.create({user_name, password}, function (err, docs) {
+	bcrypt.hash(un_hashed_password,saltRounds,(err,password) => {
+		user.create({user_name, password},(err, docs) => {
 			callback(err, "Successfully added an user!");
 		});
 	})
 };
 
 module.exports.findUser = (user_name, callback) => {
-	user.findOne({user_name},function(err,docs){
+	user.findOne({user_name},(err,docs) => {
 		callback(err,docs);
 	});
 };
 
 module.exports.findAllUsers = (callback) => {
-	user.find({},function(err,docs){
+	user.find({},(err,docs) => {
 		callback(err,docs);
 	});
 };
 
 module.exports.authenticate = (_id,user_name,callback) => {
-	user.findOne({_id,user_name},function (err,docs){
+	user.findOne({_id,user_name},(err,docs) => {
 		callback(err,docs);
 	})
 }
@@ -68,11 +68,11 @@ module.exports.findUserWithCreds = (user_name, password, callback) => {
 }
 
 module.exports.changePassword = (user_name,password,new_password,callback) =>{
-	user.findOne({user_name},function(err,docs){
-		bcrypt.compare(password,docs.password,function(err,ok){
+	user.findOne({user_name},(err,docs) => {
+		bcrypt.compare(password,docs.password,(err,ok) => {
 			if(ok){
-				bcrypt.hash(new_password,saltRounds,function(err,hashedPassword){
-					user.update({user_name},{password: hashedPassword},function(err,docs){
+				bcrypt.hash(new_password,saltRounds,(err,hashedPassword) => {
+					user.update({user_name},{password: hashedPassword},(err,docs) => {
 						callback(err,docs)
 					})
 				})

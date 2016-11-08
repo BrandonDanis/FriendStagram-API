@@ -1,4 +1,6 @@
 var mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
@@ -27,10 +29,12 @@ var user = mongoose.model('user', userSchema);
 
 
 
-module.exports.register = (user_name,password,callback) => {
-	user.create({user_name, password}, function (err, docs) {
-		callback(err, "Successfully added an user!");
-	});
+module.exports.register = (user_name,un_hashed_password,callback) => {
+	bcrypt.hash(un_hashed_password,saltRounds,function(err,password){
+		user.create({user_name, password}, function (err, docs) {
+			callback(err, "Successfully added an user!");
+		});
+	})
 };
 
 module.exports.findUser = (user_name, callback) => {
@@ -52,15 +56,30 @@ module.exports.authenticate = (_id,user_name,callback) => {
 }
 
 module.exports.findUserWithCreds = (user_name, password, callback) => {
-	user.findOne({user_name, password},function (err, docs){
-		callback(err,docs)
+	user.findOne({user_name},
+		{id:1, user_name:1, password:1},
+		(err, docs) => {
+		bcrypt.compare(password,docs.password,(err,ok) => {
+			ok?
+				callback(err,docs):
+				callback(true)
+		})
 	})
 }
 
 module.exports.changePassword = (user_name,password,new_password,callback) =>{
-	console.log(user_name +", "+ password);
-	user.update({user_name,password},{password: new_password},function(err,docs){
-		callback(err,docs)
+	user.findOne({user_name},function(err,docs){
+		bcrypt.compare(password,docs.password,function(err,ok){
+			if(ok){
+				bcrypt.hash(new_password,saltRounds,function(err,hashedPassword){
+					user.update({user_name},{password: hashedPassword},function(err,docs){
+						callback(err,docs)
+					})
+				})
+			}
+			else
+				callback(true,"Password Was Incorrect")
+		})
 	})
 }
 

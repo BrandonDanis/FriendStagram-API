@@ -14,6 +14,7 @@ module.exports.authenticate = (req,res,next) => {
 			data: 'bad token'
 		})
 	}
+	console.log(id + ", "+ user_name);
 	user.authenticate(id,user_name,(err,docs) => {
 		if(err || !docs){
 			return res.status(404).json({

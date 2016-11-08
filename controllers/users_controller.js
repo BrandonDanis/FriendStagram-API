@@ -67,9 +67,11 @@ module.exports.login = (req,res) => {
                     error: null,
                     data: 'User name and Password combination does not exist'
                 });
+            console.log(doc);
             var payload = {
                 id: doc._id,
-                user_name: doc.user_name
+                user_name: doc.user_name,
+                timestamp: new Date()
             };
             var token = jwt.encode(payload, cfg.jwtSecret);
             res.status(200).json({token});
@@ -77,7 +79,7 @@ module.exports.login = (req,res) => {
     }
 }
 
-module.exports.changeUser = (req,res) => {;
+module.exports.changeUser = (req,res) => {
     if(req.body.hasOwnProperty("password")){
         user.changePassword(req.user.user_name,req.body.password.old,req.body.password.new,(err,docs)=>{
             if(err || docs.nModified != 1)

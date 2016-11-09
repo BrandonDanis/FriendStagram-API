@@ -22,7 +22,8 @@ var userSchema = new Schema({
 	{
 		description: String,
 		url: String
-	}]
+	}],
+	logged_in: Boolean
 });
 
 var user = mongoose.model('user', userSchema);
@@ -57,11 +58,18 @@ module.exports.authenticate = (_id,user_name,callback) => {
 
 module.exports.findUserWithCreds = (user_name, password, callback) => {
 	user.findOne({user_name},
-		{id:1, user_name:1, password:1},
+		{user_name:1, password:1},
 		(err, docs) => {
 		bcrypt.compare(password,docs.password,(err,ok) => {
-			ok?
-				callback(err,docs):
+			if(ok)
+			{
+				user.update({user_name}, {logged_in: true},(err,ok) => {
+					if(err)
+						return callback(true,"Please log in again")
+				})
+				callback(err,docs)
+			}
+			else
 				callback(true)
 		})
 	})
@@ -80,6 +88,12 @@ module.exports.changePassword = (user_name,password,new_password,callback) =>{
 			else
 				callback(true,"Password Was Incorrect")
 		})
+	})
+}
+
+module.exports.globalLogOff = (callback) =>{
+	user.update({},{logged_in: false},(err,ok) => {
+		callback(err,ok);
 	})
 }
 

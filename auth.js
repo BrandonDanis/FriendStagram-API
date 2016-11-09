@@ -20,6 +20,11 @@ module.exports.authenticate = (req,res,next) => {
 				error: true,
 				data: 'User not found'
 			})
+		}else if(!docs.logged_in){
+			return res.status(412).json({
+				error:true,
+				data: 'User not logged in'
+			})
 		}
 		req.user = {id,user_name};
 		next();

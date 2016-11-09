@@ -92,3 +92,9 @@ module.exports.changeUser = (req,res) => {
     }
 
 }
+
+module.exports.globalLogOff = (req,res) => {
+    user.globalLogOff((err,ok) => {
+        res.status(err?400:200).json({err,ok});
+    })
+}

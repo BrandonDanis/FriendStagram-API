@@ -4,7 +4,8 @@ const user = require('./model/users_model');
 
 
 module.exports.authenticate = (req, res, next) => {
-    token = req.query.token;
+    var token = req.get('token')
+    console.log(token)
     try {
         var {id, user_name, uuid} = jwt.decode(token, cfg.jwtSecret);
     }

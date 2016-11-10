@@ -18,10 +18,7 @@ var userSchema = new Schema({
         require: [true, 'Must Enter a Password']
     },
     email: String,
-    pictures: [{
-            description: String,
-            url: String
-        }],
+    posts: [Schema.Types.ObjectId],
     open_sessions: [String]
 })
 
@@ -106,10 +103,10 @@ module.exports.logOffAllOtherSessions = (user_name, requested_session, callback)
 
 //POST METHODS
 
-module.exports.addPosts = (_id, description, url, callback) => {
+module.exports.linkPosts = (user_id, post_id, callback) => {
     user.findByIdAndUpdate(
-        _id,
-        {$push: {"pictures": {description, url}}},
+        user_id,
+        {$push: {"posts": post_id}},
         callback
     )
 }

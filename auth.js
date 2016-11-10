@@ -5,7 +5,6 @@ const user = require('./model/users_model');
 
 module.exports.authenticate = (req, res, next) => {
     var token = req.get('token')
-    console.log(token)
     try {
         var {id, user_name, uuid} = jwt.decode(token, cfg.jwtSecret);
     }
@@ -16,7 +15,6 @@ module.exports.authenticate = (req, res, next) => {
         })
     }
     user.authenticate(id, user_name, (err, docs) => {
-        console.log(docs)
         if (err || !docs) {
             return res.status(404).json({
                 error: true,

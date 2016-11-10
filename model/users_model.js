@@ -58,17 +58,21 @@ module.exports.findUserWithCreds = (user_name, password, callback) => {
     user.findOne({user_name},
         {user_name: 1, password: 1},
         (err, docs) => {
-            bcrypt.compare(password, docs.password, (err, ok) => {
-                if (ok) {
-                    docs.uuid = uuid.v4()
-                    user.update({user_name}, {$push: {"open_sessions": docs.uuid}}, (err, ok) => {
-                        if (err)
-                            return callback(true, "Please log in again")
-                    })
-                    callback(err, docs)
-                } else
-                    callback(true)
-            })
+            if (err || !docs)
+                return callback(true)
+            else {
+                bcrypt.compare(password, docs.password, (err, ok) => {
+                    if (ok) {
+                        docs.uuid = uuid.v4()
+                        user.update({user_name}, {$push: {"open_sessions": docs.uuid}}, (err, ok) => {
+                            if (err)
+                                return callback(true, "Please log in again")
+                        })
+                        callback(err, docs)
+                    } else
+                        callback(true)
+                })
+            }
         })
 }
 

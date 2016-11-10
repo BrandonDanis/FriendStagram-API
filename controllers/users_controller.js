@@ -108,6 +108,12 @@ module.exports.changeUser = (req, res) => {
 
 }
 
+module.exports.logOff = (req, res) => {
+    user.logOff(req.params.user_name, req.user.uuid, (error, data) => {
+        res.status(error ? 400 : 200).json({error, data})
+    })
+}
+
 module.exports.logOffAllOtherSessions = (req, res) => {
     user.logOffAllOtherSessions(req.params.user_name, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})

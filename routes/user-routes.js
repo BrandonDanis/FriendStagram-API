@@ -8,5 +8,6 @@ module.exports = function (app) {
     app.get('/user/:user_name', users_controller.findUser)
     app.post('/login', users_controller.login);
     app.put('/user/:user_name', auth.authenticate, users_controller.changeUser)
-    app.get('/user/:user_name/logoff', auth.authenticate, users_controller.logOffAllOtherSessions)
+    app.get('/user/:user_name/logOff', auth.authenticate, users_controller.logOff)
+    app.get('/user/:user_name/logOffAllOtherSessions', auth.authenticate, users_controller.logOffAllOtherSessions)
 };

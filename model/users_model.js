@@ -88,6 +88,12 @@ module.exports.changePassword = (user_name, password, new_password, callback) =>
     })
 }
 
+module.exports.logOff = (user_name, requested_session, callback) => {
+    user.update({user_name}, {$pull: {open_sessions: requested_session}}, (err, ok) => {
+        callback(err, ok);
+    })
+}
+
 module.exports.logOffAllOtherSessions = (user_name, requested_session, callback) => {
     user.update({user_name}, {open_sessions: [requested_session]}, (err, ok) => {
         callback(err, ok);

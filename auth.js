@@ -6,7 +6,7 @@ const user = require('./model/users_model');
 module.exports.authenticate = (req, res, next) => {
     token = req.query.token;
     try {
-        var {id, user_name} = jwt.decode(token, cfg.jwtSecret);
+        var {id, user_name, uuid} = jwt.decode(token, cfg.jwtSecret);
     }
     catch (e) {
         return res.status(401).json({
@@ -15,18 +15,19 @@ module.exports.authenticate = (req, res, next) => {
         })
     }
     user.authenticate(id, user_name, (err, docs) => {
+        console.log(docs)
         if (err || !docs) {
             return res.status(404).json({
                 error: true,
                 data: 'User not found'
             })
-        } else if (!docs.logged_in) {
+        } else if (!docs.open_sessions.includes(uuid)) {
             return res.status(412).json({
                 error: true,
                 data: 'User not logged in'
             })
         }
-        req.user = {id, user_name};
+        req.user = {id, user_name, uuid};
         next();
     })
 

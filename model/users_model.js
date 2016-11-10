@@ -1,6 +1,7 @@
 var mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const uuid = require('uuid');
 var Schema = mongoose.Schema;
 mongoose.Promise = global.Promise;
 var db = mongoose.connection;
@@ -17,12 +18,11 @@ var userSchema = new Schema({
         require: [true, 'Must Enter a Password']
     },
     email: String,
-    pictures: [
-        {
+    pictures: [{
             description: String,
             url: String
         }],
-    logged_in: Boolean
+    open_sessions: [String]
 })
 
 var user = mongoose.model('user', userSchema)
@@ -60,7 +60,8 @@ module.exports.findUserWithCreds = (user_name, password, callback) => {
         (err, docs) => {
             bcrypt.compare(password, docs.password, (err, ok) => {
                 if (ok) {
-                    user.update({user_name}, {logged_in: true}, (err, ok) => {
+                    docs.uuid = uuid.v4()
+                    user.update({user_name}, {$push: {"open_sessions": docs.uuid}}, (err, ok) => {
                         if (err)
                             return callback(true, "Please log in again")
                     })
@@ -87,8 +88,8 @@ module.exports.changePassword = (user_name, password, new_password, callback) =>
     })
 }
 
-module.exports.logOffAllSessions = (user_name, callback) => {
-    user.update({user_name}, {logged_in: false}, (err, ok) => {
+module.exports.logOffAllOtherSessions = (user_name, requested_session, callback) => {
+    user.update({user_name}, {open_sessions: [requested_session]}, (err, ok) => {
         callback(err, ok);
     })
 }

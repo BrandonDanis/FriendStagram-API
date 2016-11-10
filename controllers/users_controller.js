@@ -72,7 +72,8 @@ module.exports.login = (req, res) => {
             var payload = {
                 id: doc._id,
                 user_name: doc.user_name,
-                timestamp: new Date()
+                timestamp: new Date(),
+                uuid: doc.uuid
             }
             var token = jwt.encode(payload, cfg.jwtSecret)
             res.status(200).json({
@@ -107,8 +108,8 @@ module.exports.changeUser = (req, res) => {
 
 }
 
-module.exports.logOffAllSessions = (req, res) => {
-    user.logOffAllSessions(req.params.user_name, (error, data) => {
+module.exports.logOffAllOtherSessions = (req, res) => {
+    user.logOffAllOtherSessions(req.params.user_name, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }

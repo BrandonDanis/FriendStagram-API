@@ -4,7 +4,7 @@ const jwt = require('jwt-simple')
 const cfg = require('../config')
 
 module.exports.findAllUsers = (req, res) => {
-    user.findAllUsers((err, data) =>{
+    user.findAllUsers((err, data) => {
         res.status(err ? 404 : 200).json({
             error: err,
             data: data
@@ -13,12 +13,12 @@ module.exports.findAllUsers = (req, res) => {
 }
 
 module.exports.register = ({body: {user_name = null, password = null}}, res) => {
-    if (utils.isEmpty(user_name)){
+    if (utils.isEmpty(user_name)) {
         res.status(401).json({
             error: true,
             data: "Username is Null"
         })
-    } else if (utils.isEmpty(password)){
+    } else if (utils.isEmpty(password)) {
         res.status(401).json({
             error: true,
             data: "password is Null"
@@ -35,35 +35,35 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
 }
 
 module.exports.findUser = (req, res) => {
-    user.findUser(req.params.user_name,(err, data) => {
+    user.findUser(req.params.user_name, (err, data) => {
         res.status(err ?
             400 :
             data ?
                 202 :
                 404).json({
-                    'error':err,
-                    'data': data
-                });
+            'error': err,
+            'data': data
+        });
     })
 }
 
-module.exports.login = (req,res) => {
+module.exports.login = (req, res) => {
     var username = req.body.user_name;
     var password = req.body.password;
-    if (utils.isEmpty(username)){
+    if (utils.isEmpty(username)) {
         res.status(401).json({
             error: true,
             data: "Username is Null"
         })
-    } else if (utils.isEmpty(password)){
+    } else if (utils.isEmpty(password)) {
         res.status(401).json({
             error: true,
             data: "Password is Null"
         })
     } else {
         //check cache here
-        user.findUserWithCreds(username,password,(err, doc) => {
-            if (err || !doc){
+        user.findUserWithCreds(username, password, (err, doc) => {
+            if (err || !doc) {
                 return res.status(404).json({
                     error: true,
                     data: 'User name and Password combination does not exist'
@@ -83,10 +83,10 @@ module.exports.login = (req,res) => {
     }
 }
 
-module.exports.changeUser = (req,res) => {
-    if(req.body.hasOwnProperty("password")){
-        user.changePassword(req.user.user_name,req.body.password.old,req.body.password.new,(err,docs)=>{
-            if(err || docs.nModified != 1){
+module.exports.changeUser = (req, res) => {
+    if (req.body.hasOwnProperty("password")) {
+        user.changePassword(req.user.user_name, req.body.password.old, req.body.password.new, (err, docs)=> {
+            if (err || docs.nModified != 1) {
                 return res.status(404).json({
                     error: true,
                     data: "Wrong Password"
@@ -98,18 +98,17 @@ module.exports.changeUser = (req,res) => {
                 })
             }
         })
-    }
-    else{
+    } else {
         res.status(404).json({
-            erro: true,
+            error: true,
             data: "No Change Requested"
         })
     }
 
 }
 
-module.exports.globalLogOff = (req, res) => {
-    user.globalLogOff((error, data) => {
+module.exports.logOffAllSessions = (req, res) => {
+    user.logOffAllSessions(req.params.user_name, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }

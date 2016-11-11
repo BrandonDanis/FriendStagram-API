@@ -19,11 +19,12 @@ var userSchema = new Schema({
     },
     email: String,
     posts: [Schema.Types.ObjectId],
-    open_sessions: [String]
+    open_sessions: [String],
+    followers: [Schema.Types.ObjectId],
+    following: [Schema.Types.ObjectId]
 })
 
 var user = mongoose.model('user', userSchema)
-
 
 module.exports.register = (user_name, un_hashed_password, callback) => {
     bcrypt.hash(un_hashed_password, saltRounds, (err, password) => {

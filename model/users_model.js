@@ -29,7 +29,7 @@ var user = mongoose.model('user', userSchema)
 module.exports.register = (user_name, un_hashed_password, callback) => {
     bcrypt.hash(un_hashed_password, saltRounds, (err, password) => {
         user.create({user_name, password}, (err, docs) => {
-            callback(err, "Successfully added an user!")
+            callback(err, docs)
         })
     })
 }

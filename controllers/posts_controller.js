@@ -1,6 +1,7 @@
 const user = require('../model/users_model');
 const post = require('../model/posts_model');
 const utils = require('../utils/util');
+const qs = require('querystring');
 
 module.exports.addPosts = (req, res) => {
     var userID = req.user.id;
@@ -16,12 +17,23 @@ module.exports.addPosts = (req, res) => {
     });
 }
 
-module.exports.getPostByUser = (req, res) =>{
+module.exports.getPostsByUser = (req, res) => {
     var userName = req.params.user_name;
     user.findUserPosts(userName, (err, posts) => {
-        post.getURLsByIDs(posts.posts, JSON.parse(req.query.sort), (err, urls) => {
-            res.json(urls);
+        post.getURLsByIDs(posts.posts, req.query.sort, (err, urls) => {
+            res.json({
+                error:err,
+                data:urls
+            })
         });
     })
+}
 
+module.exports.searchPostsByTags = (req, res) => {
+    post.getURLsByTags(req.query.tags, req.query.sort, (err,urls) => {
+        res.json({
+            error:err,
+            data:urls
+        })
+    })
 }

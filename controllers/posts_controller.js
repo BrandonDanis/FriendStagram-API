@@ -14,6 +14,15 @@ module.exports.addPosts = (req, res) => {
             });
         });
     });
+}
 
+module.exports.getPostByUser = (req, res) =>{
+    var userName = req.params.user_name;
+    user.findUserPosts(userName, (err, posts) => {
+        console.log(posts.posts);
+        post.getURLsByIDs(posts.posts, (err, urls) => {
+            res.json(urls);
+        });
+    })
 
 }

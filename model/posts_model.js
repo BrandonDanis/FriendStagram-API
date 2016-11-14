@@ -29,3 +29,7 @@ module.exports.addPosts = (description, url, tags, callback) => {
             callback(null, docs._id)
     })
 }
+
+module.exports.getURLsByIDs = (idList, callback) => {
+    post.find({_id : {$in: idList}}, {url:1}, callback)
+}

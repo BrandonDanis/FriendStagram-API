@@ -111,3 +111,7 @@ module.exports.linkPosts = (user_id, post_id, callback) => {
         callback
     )
 }
+
+module.exports.findUserPosts = (user_name, callback) => {
+    user.findOne({user_name}, {posts:1}, callback)
+}

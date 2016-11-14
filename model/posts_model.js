@@ -30,6 +30,6 @@ module.exports.addPosts = (description, url, tags, callback) => {
     })
 }
 
-module.exports.getURLsByIDs = (idList, callback) => {
-    post.find({_id : {$in: idList}}, {url:1}, callback)
+module.exports.getURLsByIDs = (idList, sort, callback) => {
+    post.find({_id : {$in: idList}}, {url:1}, callback).sort(sort)
 }

@@ -19,8 +19,7 @@ module.exports.addPosts = (req, res) => {
 module.exports.getPostByUser = (req, res) =>{
     var userName = req.params.user_name;
     user.findUserPosts(userName, (err, posts) => {
-        console.log(posts.posts);
-        post.getURLsByIDs(posts.posts, (err, urls) => {
+        post.getURLsByIDs(posts.posts, JSON.parse(req.query.sort), (err, urls) => {
             res.json(urls);
         });
     })

@@ -35,6 +35,10 @@ module.exports.getURLsByIDs = (idList, sort, callback) => {
 }
 
 module.exports.getURLsByTags = (tagList, sort, callback) => {
-    post.find({tags : {$in: tagList instanceof Array ? tagList : [tagList]}},
+    post.find(tagList ?
+            {tags : {$in: tagList instanceof Array ?
+                tagList :
+                [tagList]}} :
+            {},
         {url: 1}, callback).sort(sort ? JSON.parse(sort):{})
 }

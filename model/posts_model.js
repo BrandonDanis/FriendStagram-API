@@ -31,14 +31,23 @@ module.exports.addPosts = (description, url, tags, callback) => {
 }
 
 module.exports.getURLsByIDs = (idList, sort, callback) => {
-    post.find({_id : {$in: idList}}, {url: 1}, callback).sort(sort ? JSON.parse(sort):{})
+    post.find({_id : {$in: idList}}, {url: 1}, callback)
+        .sort(sort ? JSON.parse(sort):{})
 }
 
 module.exports.getURLsByTags = (tagList, sort, callback) => {
     post.find(tagList ?
-            {tags : {$in: tagList instanceof Array ?
-                tagList :
-                [tagList]}} :
-            {},
-        {url: 1}, callback).sort(sort ? JSON.parse(sort):{})
+            {tags :
+                {$in: tagList instanceof Array ?
+                    tagList :
+                    [tagList]}} :
+                {},
+            {url: 1}, callback)
+        .sort(sort ? JSON.parse(sort):{})
+}
+
+module.exports.getLatestPosts = (numOfLatestPosts, sort, callback) => {
+    post.find({}, {url: 1}, callback)
+        .sort(sort ? Json.parse(sort):{time_stamp : -1})
+        .limit(numOfLatestPosts)
 }

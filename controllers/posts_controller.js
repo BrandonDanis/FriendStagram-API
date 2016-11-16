@@ -25,12 +25,21 @@ module.exports.getPostsByUser = (req, res) => {
                 error:err,
                 data:urls
             })
-        });
+        })
     })
 }
 
 module.exports.searchPostsByTags = (req, res) => {
     post.getURLsByTags(req.query.tags, req.query.sort, (err,urls) => {
+        res.json({
+            error:err,
+            data:urls
+        })
+    })
+}
+
+module.exports.getLatestPosts = (req, res) => {
+    post.getLatestPosts(parseInt(req.query.num_of_posts), req.query.sort, (err,urls) => {
         res.json({
             error:err,
             data:urls

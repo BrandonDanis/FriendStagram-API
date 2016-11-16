@@ -39,7 +39,7 @@ module.exports.searchPostsByTags = (req, res) => {
 }
 
 module.exports.getLatestPosts = (req, res) => {
-    post.getLatestPosts(parseInt(req.query.num_of_posts), req.query.sort, (err,urls) => {
+    post.getLatestPosts(parseInt(req.query.numOfPosts), req.query.sort, (err,urls) => {
         res.json({
             error:err,
             data:urls

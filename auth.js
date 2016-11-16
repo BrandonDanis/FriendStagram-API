@@ -20,7 +20,7 @@ module.exports.authenticate = (req, res, next) => {
                 error: true,
                 data: 'User not found'
             })
-        } else if (!docs.open_sessions.includes(uuid)) {
+        } else if (!docs.openSessions.includes(uuid)) {
             return res.status(412).json({
                 error: true,
                 data: 'User not logged in'

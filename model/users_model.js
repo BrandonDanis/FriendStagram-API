@@ -19,15 +19,15 @@ var userSchema = new Schema({
     },
     email: String,
     posts: [Schema.Types.ObjectId],
-    open_sessions: [String],
+    openSessions: [String],
     followers: [Schema.Types.ObjectId],
     following: [Schema.Types.ObjectId]
 })
 
 var user = mongoose.model('user', userSchema)
 
-module.exports.register = (username, un_hashed_password, callback) => {
-    bcrypt.hash(un_hashed_password, saltRounds, (err, password) => {
+module.exports.register = (username, unHashedPassword, callback) => {
+    bcrypt.hash(unHashedPassword, saltRounds, (err, password) => {
         user.create({username, password}, (err, docs) => {
             callback(err, docs)
         })
@@ -52,7 +52,7 @@ module.exports.authenticate = (_id, username, callback) => {
     })
 }
 
-module.exports.findUserWithCreds = (username, password, callback) => {
+module.exports.login = (username, password, callback) => {
     user.findOne({username},
         {username: 1, password: 1},
         (err, docs) => {
@@ -62,7 +62,7 @@ module.exports.findUserWithCreds = (username, password, callback) => {
                 bcrypt.compare(password, docs.password, (err, ok) => {
                     if (ok) {
                         docs.uuid = uuid.v4()
-                        user.update({username}, {$push: {"open_sessions": docs.uuid}}, (err, ok) => {
+                        user.update({username}, {$push: {"openSessions": docs.uuid}}, (err, ok) => {
                             if (err)
                                 return callback(true, "Please log in again")
                         })
@@ -74,11 +74,11 @@ module.exports.findUserWithCreds = (username, password, callback) => {
         })
 }
 
-module.exports.changePassword = (username, password, new_password, callback) => {
+module.exports.changePassword = (username, password, newPassword, callback) => {
     user.findOne({username}, (err, docs) => {
         bcrypt.compare(password, docs.password, (err, ok) => {
             if (ok) {
-                bcrypt.hash(new_password, saltRounds, (err, hashedPassword) => {
+                bcrypt.hash(newPassword, saltRounds, (err, hashedPassword) => {
                     user.update({username}, {password: hashedPassword}, (err, docs) => {
                         callback(err, docs)
                     })
@@ -90,24 +90,24 @@ module.exports.changePassword = (username, password, new_password, callback) => 
     })
 }
 
-module.exports.logOff = (username, requested_session, callback) => {
-    user.update({username}, {$pull: {open_sessions: requested_session}}, (err, ok) => {
+module.exports.logOff = (username, requestedSession, callback) => {
+    user.update({username}, {$pull: {openSessions: requestedSession}}, (err, ok) => {
         callback(err, ok);
     })
 }
 
-module.exports.logOffAllOtherSessions = (username, requested_session, callback) => {
-    user.update({username}, {open_sessions: [requested_session]}, (err, ok) => {
+module.exports.logOffAllOtherSessions = (username, requestedSession, callback) => {
+    user.update({username}, {openSessions: [requestedSession]}, (err, ok) => {
         callback(err, ok);
     })
 }
 
 //POST METHODS
 
-module.exports.linkPosts = (user_id, post_id, callback) => {
+module.exports.linkPosts = (userID, postID, callback) => {
     user.findByIdAndUpdate(
-        user_id,
-        {$push: {"posts": post_id}},
+        userID,
+        {$push: {"posts": postID}},
         callback
     )
 }

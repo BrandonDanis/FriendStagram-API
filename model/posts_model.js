@@ -10,7 +10,7 @@ var postSchema = new Schema({
         type: String,
         require: [true, "Must Enter an URL"]
     },
-    time_stamp: Date,
+    timeStamp: Date,
     tags: [String]
 })
 
@@ -19,8 +19,8 @@ var post = mongoose.model('post', postSchema)
 module.exports.addPosts = (description, url, tags, callback) => {
     post.create({
         description, 
-        url, 
-        time_stamp : new Date(), 
+        url,
+        timeStamp : new Date(),
         tags
     }, (err, docs) => {
         if (err)
@@ -48,6 +48,6 @@ module.exports.getURLsByTags = (tagList, sort, callback) => {
 
 module.exports.getLatestPosts = (numOfLatestPosts, sort, callback) => {
     post.find({}, {url: 1}, callback)
-        .sort(sort ? Json.parse(sort):{time_stamp : -1})
+        .sort(sort ? Json.parse(sort):{timeStamp : -1})
         .limit(numOfLatestPosts)
 }

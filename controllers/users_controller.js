@@ -62,7 +62,7 @@ module.exports.login = (req, res) => {
         })
     } else {
         //check cache here
-        user.findUserWithCreds(username, password, (err, doc) => {
+        user.login(username, password, (err, doc) => {
             if (err || !doc) {
                 return res.status(404).json({
                     error: true,
@@ -109,13 +109,13 @@ module.exports.changeUser = (req, res) => {
 }
 
 module.exports.logOff = (req, res) => {
-    user.logOff(req.params.username, req.user.uuid, (error, data) => {
+    user.logOff(req.user.username, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }
 
 module.exports.logOffAllOtherSessions = (req, res) => {
-    user.logOffAllOtherSessions(req.params.username, req.user.uuid, (error, data) => {
+    user.logOffAllOtherSessions(req.user.username, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }

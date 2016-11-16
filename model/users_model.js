@@ -8,7 +8,7 @@ var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'connection error:'));
 
 var userSchema = new Schema({
-    user_name: {
+    username: {
         type: String,
         unique: true,
         require: [true, 'Must Enter a User Name']
@@ -26,16 +26,16 @@ var userSchema = new Schema({
 
 var user = mongoose.model('user', userSchema)
 
-module.exports.register = (user_name, un_hashed_password, callback) => {
+module.exports.register = (username, un_hashed_password, callback) => {
     bcrypt.hash(un_hashed_password, saltRounds, (err, password) => {
-        user.create({user_name, password}, (err, docs) => {
+        user.create({username, password}, (err, docs) => {
             callback(err, docs)
         })
     })
 }
 
-module.exports.findUser = (user_name, callback) => {
-    user.findOne({user_name}, (err, docs) => {
+module.exports.findUser = (username, callback) => {
+    user.findOne({username}, (err, docs) => {
         callback(err, docs)
     })
 }
@@ -46,15 +46,15 @@ module.exports.findAllUsers = (callback) => {
     })
 }
 
-module.exports.authenticate = (_id, user_name, callback) => {
-    user.findOne({_id, user_name}, (err, docs) => {
+module.exports.authenticate = (_id, username, callback) => {
+    user.findOne({_id, username}, (err, docs) => {
         callback(err, docs)
     })
 }
 
-module.exports.findUserWithCreds = (user_name, password, callback) => {
-    user.findOne({user_name},
-        {user_name: 1, password: 1},
+module.exports.findUserWithCreds = (username, password, callback) => {
+    user.findOne({username},
+        {username: 1, password: 1},
         (err, docs) => {
             if (err || !docs)
                 return callback(true)
@@ -62,7 +62,7 @@ module.exports.findUserWithCreds = (user_name, password, callback) => {
                 bcrypt.compare(password, docs.password, (err, ok) => {
                     if (ok) {
                         docs.uuid = uuid.v4()
-                        user.update({user_name}, {$push: {"open_sessions": docs.uuid}}, (err, ok) => {
+                        user.update({username}, {$push: {"open_sessions": docs.uuid}}, (err, ok) => {
                             if (err)
                                 return callback(true, "Please log in again")
                         })
@@ -74,12 +74,12 @@ module.exports.findUserWithCreds = (user_name, password, callback) => {
         })
 }
 
-module.exports.changePassword = (user_name, password, new_password, callback) => {
-    user.findOne({user_name}, (err, docs) => {
+module.exports.changePassword = (username, password, new_password, callback) => {
+    user.findOne({username}, (err, docs) => {
         bcrypt.compare(password, docs.password, (err, ok) => {
             if (ok) {
                 bcrypt.hash(new_password, saltRounds, (err, hashedPassword) => {
-                    user.update({user_name}, {password: hashedPassword}, (err, docs) => {
+                    user.update({username}, {password: hashedPassword}, (err, docs) => {
                         callback(err, docs)
                     })
                 })
@@ -90,14 +90,14 @@ module.exports.changePassword = (user_name, password, new_password, callback) =>
     })
 }
 
-module.exports.logOff = (user_name, requested_session, callback) => {
-    user.update({user_name}, {$pull: {open_sessions: requested_session}}, (err, ok) => {
+module.exports.logOff = (username, requested_session, callback) => {
+    user.update({username}, {$pull: {open_sessions: requested_session}}, (err, ok) => {
         callback(err, ok);
     })
 }
 
-module.exports.logOffAllOtherSessions = (user_name, requested_session, callback) => {
-    user.update({user_name}, {open_sessions: [requested_session]}, (err, ok) => {
+module.exports.logOffAllOtherSessions = (username, requested_session, callback) => {
+    user.update({username}, {open_sessions: [requested_session]}, (err, ok) => {
         callback(err, ok);
     })
 }
@@ -112,6 +112,6 @@ module.exports.linkPosts = (user_id, post_id, callback) => {
     )
 }
 
-module.exports.findUserPosts = (user_name, callback) => {
-    user.findOne({user_name}, {posts:1}, callback)
+module.exports.findUserPosts = (username, callback) => {
+    user.findOne({username}, {posts:1}, callback)
 }

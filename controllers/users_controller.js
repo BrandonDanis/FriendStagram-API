@@ -12,8 +12,8 @@ module.exports.findAllUsers = (req, res) => {
     })
 }
 
-module.exports.register = ({body: {user_name = null, password = null}}, res) => {
-    if (utils.isEmpty(user_name)) {
+module.exports.register = ({body: {username = null, password = null}}, res) => {
+    if (utils.isEmpty(username)) {
         res.status(401).json({
             error: true,
             data: "Username is Null"
@@ -24,7 +24,7 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
             data: "password is Null"
         })
     } else {
-        user.register(user_name, password, (err, data) => {
+        user.register(username, password, (err, data) => {
             res.status(err ? 500 : 201).json({
                 error: err,
                 data: data
@@ -35,7 +35,7 @@ module.exports.register = ({body: {user_name = null, password = null}}, res) => 
 }
 
 module.exports.findUser = (req, res) => {
-    user.findUser(req.params.user_name, (err, data) => {
+    user.findUser(req.params.username, (err, data) => {
         res.status(err ?
             400 :
             data ?
@@ -48,7 +48,7 @@ module.exports.findUser = (req, res) => {
 }
 
 module.exports.login = (req, res) => {
-    var username = req.body.user_name;
+    var username = req.body.username;
     var password = req.body.password;
     if (utils.isEmpty(username)) {
         res.status(401).json({
@@ -71,7 +71,7 @@ module.exports.login = (req, res) => {
             }
             var payload = {
                 id: doc._id,
-                user_name: doc.user_name,
+                username: doc.username,
                 timestamp: new Date(),
                 uuid: doc.uuid
             }
@@ -86,7 +86,7 @@ module.exports.login = (req, res) => {
 
 module.exports.changeUser = (req, res) => {
     if (req.body.hasOwnProperty("password")) {
-        user.changePassword(req.user.user_name, req.body.password.old, req.body.password.new, (err, docs)=> {
+        user.changePassword(req.user.username, req.body.password.old, req.body.password.new, (err, docs)=> {
             if (err || docs.nModified != 1) {
                 return res.status(404).json({
                     error: true,
@@ -109,13 +109,13 @@ module.exports.changeUser = (req, res) => {
 }
 
 module.exports.logOff = (req, res) => {
-    user.logOff(req.params.user_name, req.user.uuid, (error, data) => {
+    user.logOff(req.params.username, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }
 
 module.exports.logOffAllOtherSessions = (req, res) => {
-    user.logOffAllOtherSessions(req.params.user_name, req.user.uuid, (error, data) => {
+    user.logOffAllOtherSessions(req.params.username, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }

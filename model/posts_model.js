@@ -38,6 +38,7 @@ module.exports.getURLsByIDs = (idList, sort, callback) => {
 module.exports.search = (queryParams, callback) => {
     var {tags, offset = 0, limit = 15, sort, description} = queryParams
     limit = parseInt(limit)
+    sort = sort ? JSON.parse(sort) : {}
     var findParams = {}
 
     if(tags){
@@ -51,13 +52,7 @@ module.exports.search = (queryParams, callback) => {
 
     console.log(findParams)
     post.find(findParams, {url: 1}, callback)
-        .sort(sort ? JSON.parse(sort):{})
+        .sort(sort)
         .skip(offset)
         .limit(limit)
-}
-
-module.exports.getLatestPosts = (numOfLatestPosts, sort, callback) => {
-    post.find({}, {url: 1}, callback)
-        .sort(sort ? Json.parse(sort):{timeStamp : -1})
-        .limit(numOfLatestPosts)
 }

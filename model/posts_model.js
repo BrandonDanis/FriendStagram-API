@@ -35,15 +35,25 @@ module.exports.getURLsByIDs = (idList, sort, callback) => {
         .sort(sort ? JSON.parse(sort):{})
 }
 
-module.exports.getURLsByTags = (tagList, sort, callback) => {
-    post.find(tagList ?
-            {tags :
-                {$in: tagList instanceof Array ?
-                    tagList :
-                    [tagList]}} :
-                {},
-            {url: 1}, callback)
+module.exports.search = (queryParams, callback) => {
+    var {tags, offset = 0, limit = 15, sort, description} = queryParams
+    limit = parseInt(limit)
+    var findParams = {}
+
+    if(tags){
+        findParams["tags"] = {$in: tags instanceof Array ?
+            tags :
+            [tags]}
+    }
+
+    if(description)
+        findParams["description"] = {$regex: new RegExp(description, "i")}
+
+    console.log(findParams)
+    post.find(findParams, {url: 1}, callback)
         .sort(sort ? JSON.parse(sort):{})
+        .skip(offset)
+        .limit(limit)
 }
 
 module.exports.getLatestPosts = (numOfLatestPosts, sort, callback) => {

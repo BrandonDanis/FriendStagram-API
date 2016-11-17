@@ -29,8 +29,8 @@ module.exports.getPostsByUser = (req, res) => {
     })
 }
 
-module.exports.searchPostsByTags = (req, res) => {
-    post.getURLsByTags(req.query.tags, req.query.sort, (err,urls) => {
+module.exports.search = (req, res) => {
+    post.search(req.query, (err, urls) => {
         res.json({
             error:err,
             data:urls

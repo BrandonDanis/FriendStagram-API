@@ -51,12 +51,3 @@ module.exports.search = (req, res) => {
         })
     })
 }
-
-module.exports.getLatestPosts = (req, res) => {
-    post.getLatestPosts(parseInt(req.query.numOfPosts), req.query.sort, (err,urls) => {
-        res.json({
-            error:err,
-            data:urls
-        })
-    })
-}

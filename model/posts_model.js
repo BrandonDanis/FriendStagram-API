@@ -37,16 +37,10 @@ module.exports.getURLsByIDs = (idList, sort, callback) => {
 
 module.exports.search = (queryParams, callback) => {
     var {tags, offset = 0, limit = 15, sort, description} = queryParams
-    limit = parseInt(limit)
-    sort = sort ? JSON.parse(sort) : {}
+
     var findParams = {}
-
-    if(tags){
-        findParams["tags"] = {$in: tags instanceof Array ?
-            tags :
-            [tags]}
-    }
-
+    if(tags)
+        findParams["tags"] = tags
     if(description)
         findParams["description"] = {$regex: new RegExp(description, "i")}
 

@@ -30,6 +30,20 @@ module.exports.getPostsByUser = (req, res) => {
 }
 
 module.exports.search = (req, res) => {
+    var {limit, sort, tags, offset} = req.query
+    if(limit)
+        req.query.limit = parseInt(limit)
+    req.query.sort = sort ? JSON.parse(sort) : {}
+
+    if(offset)
+        req.query.offset = parseInt(offset)
+
+    if(tags){
+        req.query.tags = {$in: tags instanceof Array ?
+            tags :
+            [tags]}
+    }
+
     post.search(req.query, (err, urls) => {
         res.json({
             error:err,

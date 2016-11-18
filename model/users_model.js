@@ -115,3 +115,13 @@ module.exports.linkPosts = (userID, postID, callback) => {
 module.exports.findUserPosts = (username, callback) => {
     user.findOne({username}, {posts:1}, callback)
 }
+
+module.exports.authorizedToDelete = (post, id, callback) => {
+    user.findOne({_id: id, posts: post}, callback)
+}
+
+module.exports.removePost = (post, id, callback) => {
+    user.update({_id:id}, {$pull: {posts: post}}, (err,ok) => {
+        callback(err, ok);
+    })
+}

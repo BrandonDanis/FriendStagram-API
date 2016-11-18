@@ -50,3 +50,7 @@ module.exports.search = (queryParams, callback) => {
         .skip(offset)
         .limit(limit)
 }
+
+module.exports.delete = (postToDelete, callback) => {
+    post.remove({_id: postToDelete} , callback)
+}

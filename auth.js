@@ -29,6 +29,22 @@ module.exports.authenticate = (req, res, next) => {
         req.user = {id, username, uuid};
         next();
     })
-
 };
+
+module.exports.authorizedToDelete = (req, res, next) => {
+    user.authorizedToDelete(req.body.post, req.user.id, (err, authorized) => {
+        if(err) {
+            return res.status(500).json({
+                error: true,
+                data: 'Database Error'
+            })
+        } else if (!authorized){
+            return res.status(401).json({
+                error: true,
+                data: 'User does not have right to delete this post'
+            })
+        }
+        next()
+    })
+}
 

@@ -22,8 +22,8 @@ module.exports.getPostsByUser = (req, res) => {
     user.findUserPosts(userName, (err, posts) => {
         post.getURLsByIDs(posts.posts, req.query.sort, (err, urls) => {
             res.json({
-                error:err,
-                data:urls
+                error: err,
+                data: urls
             })
         })
     })
@@ -46,8 +46,28 @@ module.exports.search = (req, res) => {
 
     post.search(req.query, (err, urls) => {
         res.json({
-            error:err,
-            data:urls
+            error: err,
+            data: urls
         })
+    })
+}
+
+module.exports.delete = (req, res) => {
+    post.delete(req.body.post, (err, ok) => {
+        if (err) {
+            return res.json({
+                error: err,
+                data: ok
+            })
+        }
+        else{
+            user.removePost(req.body.post, req.user.id, (err, ok) => {
+                res.json({
+                    error: err,
+                    data: ok
+                })
+            })
+        }
+
     })
 }

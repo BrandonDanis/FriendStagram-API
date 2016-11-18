@@ -2,6 +2,7 @@ const user = require('../model/users_model')
 const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')
+const bcrypt = require('bcrypt')
 
 module.exports.findAllUsers = (req, res) => {
     user.findAllUsers((err, data) => {
@@ -117,5 +118,22 @@ module.exports.logOff = (req, res) => {
 module.exports.logOffAllOtherSessions = (req, res) => {
     user.logOffAllOtherSessions(req.user.username, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
+    })
+}
+
+module.exports.delete = (req, res) => {
+    bcrypt.compare()
+    user.delete(req.user.id , (error, data) => {
+        console.log(data)
+        if(error)
+            res.status(500).json({
+                error: true,
+                data: "database error"
+            })
+        else
+            res.status(200).json({
+                error: null,
+                data: "Successfully deleted user"
+            })
     })
 }

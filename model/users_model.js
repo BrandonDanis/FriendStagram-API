@@ -52,41 +52,44 @@ module.exports.authenticate = (_id, username, callback) => {
     })
 }
 
-module.exports.login = (username, password, callback) => {
+comparePassword = (username, password, callback) => {
     user.findOne({username},
-        {username: 1, password: 1},
-        (err, docs) => {
+        {username: 1, password: 1},(err, docs) => {
             if (err || !docs)
                 return callback(true)
-            else {
-                bcrypt.compare(password, docs.password, (err, ok) => {
-                    if (ok) {
-                        docs.uuid = uuid.v4()
-                        user.update({username}, {$push: {"openSessions": docs.uuid}}, (err, ok) => {
-                            if (err)
-                                return callback(true, "Please log in again")
-                        })
-                        callback(err, docs)
-                    } else
-                        callback(true)
-                })
-            }
+            else
+                bcrypt.compare(password, docs.password, callback)
         })
 }
 
+module.exports.login = (username, password, callback) => {
+    comparePassword (username, password, (err, ok) => {
+        if (ok) {
+            var res = {username, password}
+            res.uuid = uuid.v4()
+            user.update({username}, {$push: {"openSessions": res.uuid}}, (err, ok) => {
+                if (err || !ok)
+                    return callback(true, "Please log in again")
+                else {
+                    return callback(err, res)
+                }
+            })
+        } else
+            callback(true)
+    })
+}
+
 module.exports.changePassword = (username, password, newPassword, callback) => {
-    user.findOne({username}, (err, docs) => {
-        bcrypt.compare(password, docs.password, (err, ok) => {
-            if (ok) {
-                bcrypt.hash(newPassword, saltRounds, (err, hashedPassword) => {
-                    user.update({username}, {password: hashedPassword}, (err, docs) => {
-                        callback(err, docs)
-                    })
+    comparePassword(username, password, (err, ok) => {
+        if (ok) {
+            bcrypt.hash(newPassword, saltRounds, (err, hashedPassword) => {
+                user.update({username}, {password: hashedPassword}, (err, docs) => {
+                    callback(err, docs)
                 })
-            }
-            else
-                callback(true, "Password Was Incorrect")
-        })
+            })
+        }
+        else
+            callback(true, "Password Was Incorrect")
     })
 }
 
@@ -116,12 +119,14 @@ module.exports.findUserPosts = (username, callback) => {
     user.findOne({username}, {posts:1}, callback)
 }
 
-module.exports.authorizedToDelete = (post, id, callback) => {
-    user.findOne({_id: id, posts: post}, callback)
+module.exports.authorizedToDelete = (post, _id, callback) => {
+    user.findOne({_id, posts: post}, callback)
 }
 
-module.exports.removePost = (post, id, callback) => {
-    user.update({_id:id}, {$pull: {posts: post}}, (err,ok) => {
-        callback(err, ok);
-    })
+module.exports.removePost = (post, _id, callback) => {
+    user.update({_id}, {$pull: {posts: post}}, callback)
+}
+
+module.exports.delete = (_id) => {
+    user.remove({_id}, callback)
 }

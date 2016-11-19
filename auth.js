@@ -5,10 +5,9 @@ const user = require('./model/users_model');
 
 module.exports.authenticate = (req, res, next) => {
     var token = req.get('token')
-    console.log(token);
     try {
-        var {id, username, uuid} = jwt.decode(token, cfg.jwtSecret);
-        console.log(id, username, uuid)
+        var {id, uuid} = jwt.decode(token, cfg.jwtSecret);
+        console.log(id, uuid)
     }
     catch (e) {
         return res.status(401).json({
@@ -16,8 +15,7 @@ module.exports.authenticate = (req, res, next) => {
             data: 'bad token'
         })
     }
-    user.authenticate(id, username, (err, docs) => {
-        console.log(id, username)
+    user.authenticate(id, (err, docs) => {
         if (err || !docs) {
             return res.status(404).json({
                 error: true,
@@ -29,7 +27,7 @@ module.exports.authenticate = (req, res, next) => {
                 data: 'User not logged in'
             })
         }
-        req.user = {id, username, uuid};
+        req.user = {id, uuid};
         next();
     })
 };

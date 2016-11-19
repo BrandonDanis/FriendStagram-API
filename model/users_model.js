@@ -46,14 +46,14 @@ module.exports.findAllUsers = (callback) => {
     })
 }
 
-module.exports.authenticate = (_id, username, callback) => {
-    user.findOne({_id, username}, (err, docs) => {
+module.exports.authenticate = (_id, callback) => {
+    user.findOne({_id}, (err, docs) => {
         callback(err, docs)
     })
 }
 
-comparePassword = (username, password, callback) => {
-    user.findOne({username},
+comparePasswordbyID = (_id, password, callback) => {
+    user.findOne({_id},
         {username: 1, password: 1},(err, docs) => {
             if (err || !docs)
                 return callback(true)
@@ -62,28 +62,40 @@ comparePassword = (username, password, callback) => {
         })
 }
 
-module.exports.login = (username, password, callback) => {
-    comparePassword (username, password, (err, ok) => {
-        if (ok) {
-            var res = {username, password}
-            res.uuid = uuid.v4()
-            user.update({username}, {$push: {"openSessions": res.uuid}}, (err, ok) => {
-                if (err || !ok)
-                    return callback(true, "Please log in again")
-                else {
-                    return callback(err, res)
-                }
-            })
-        } else
-            callback(true)
-    })
+comparePasswordbyUsername = (username, password, callback) => {
+
 }
 
-module.exports.changePassword = (username, password, newPassword, callback) => {
-    comparePassword(username, password, (err, ok) => {
+module.exports.login = (username, password, callback) => {
+    user.findOne({username},
+        {username: 1, password: 1},(err, docs) => {
+            if (err || !docs)
+                return callback(true)
+            else
+                bcrypt.compare(password, docs.password,  (username, password, (err, ok) => {
+                    if (ok) {
+                        var res = {}
+                        res.id = docs._id
+                        res.uuid = uuid.v4()
+                        user.update({username}, {$push: {"openSessions": res.uuid}}, (err, ok) => {
+                            if (err || !ok)
+                                return callback(true, "Please log in again")
+                            else {
+                                return callback(err, res)
+                            }
+                        })
+                    } else
+                        callback(true)
+                }))
+        })
+
+}
+
+module.exports.changePassword = (_id, password, newPassword, callback) => {
+    comparePasswordbyID(_id, password, (err, ok) => {
         if (ok) {
             bcrypt.hash(newPassword, saltRounds, (err, hashedPassword) => {
-                user.update({username}, {password: hashedPassword}, (err, docs) => {
+                user.update({_id}, {password: hashedPassword}, (err, docs) => {
                     callback(err, docs)
                 })
             })
@@ -93,14 +105,14 @@ module.exports.changePassword = (username, password, newPassword, callback) => {
     })
 }
 
-module.exports.logOff = (username, requestedSession, callback) => {
-    user.update({username}, {$pull: {openSessions: requestedSession}}, (err, ok) => {
+module.exports.logOff = (_id, requestedSession, callback) => {
+    user.update({_id}, {$pull: {openSessions: requestedSession}}, (err, ok) => {
         callback(err, ok);
     })
 }
 
-module.exports.logOffAllOtherSessions = (username, requestedSession, callback) => {
-    user.update({username}, {openSessions: [requestedSession]}, (err, ok) => {
+module.exports.logOffAllOtherSessions = (_id, requestedSession, callback) => {
+    user.update({_id}, {openSessions: [requestedSession]}, (err, ok) => {
         callback(err, ok);
     })
 }

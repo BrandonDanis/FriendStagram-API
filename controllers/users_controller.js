@@ -64,15 +64,15 @@ module.exports.login = (req, res) => {
     } else {
         //check cache here
         user.login(username, password, (err, doc) => {
+            console.log(doc)
             if (err || !doc) {
                 return res.status(404).json({
                     error: true,
-                    data: 'User name and Password combination does not exist'
+                    data: 'Username and Password combination does not exist'
                 })
             }
             var payload = {
-                id: doc._id,
-                username: doc.username,
+                id: doc.id,
                 timestamp: new Date(),
                 uuid: doc.uuid
             }
@@ -87,7 +87,7 @@ module.exports.login = (req, res) => {
 
 module.exports.changeUser = (req, res) => {
     if (req.body.hasOwnProperty("password")) {
-        user.changePassword(req.user.username, req.body.password.old, req.body.password.new, (err, docs)=> {
+        user.changePassword(req.user.id, req.body.password.old, req.body.password.new, (err, docs)=> {
             if (err || docs.nModified != 1) {
                 return res.status(404).json({
                     error: true,
@@ -110,13 +110,13 @@ module.exports.changeUser = (req, res) => {
 }
 
 module.exports.logOff = (req, res) => {
-    user.logOff(req.user.username, req.user.uuid, (error, data) => {
+    user.logOff(req.user.id, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }
 
 module.exports.logOffAllOtherSessions = (req, res) => {
-    user.logOffAllOtherSessions(req.user.username, req.user.uuid, (error, data) => {
+    user.logOffAllOtherSessions(req.user.id, req.user.uuid, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
     })
 }

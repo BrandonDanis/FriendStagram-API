@@ -51,6 +51,10 @@ module.exports.search = (queryParams, callback) => {
         .limit(limit)
 }
 
-module.exports.delete = (postToDelete, callback) => {
-    post.remove({_id: postToDelete} , callback)
+module.exports.delete = (_id, callback) => {
+    post.remove({_id} , callback)
+}
+
+module.exports.batchDelete = (postsToDelete, callback) => {
+    post.remove({_id: { $in: postsToDelete}}, callback)
 }

@@ -52,7 +52,7 @@ module.exports.authenticate = (_id, callback) => {
     })
 }
 
-comparePasswordbyID = (_id, password, callback) => {
+module.exports.comparePasswordbyID = (_id, password, callback) => {
     user.findOne({_id},
         {username: 1, password: 1},(err, docs) => {
             if (err || !docs)
@@ -60,10 +60,6 @@ comparePasswordbyID = (_id, password, callback) => {
             else
                 bcrypt.compare(password, docs.password, callback)
         })
-}
-
-comparePasswordbyUsername = (username, password, callback) => {
-
 }
 
 module.exports.login = (username, password, callback) => {
@@ -127,8 +123,12 @@ module.exports.linkPosts = (userID, postID, callback) => {
     )
 }
 
-module.exports.findUserPosts = (username, callback) => {
+module.exports.findUserPostsbyUsername = (username, callback) => {
     user.findOne({username}, {posts:1}, callback)
+}
+
+module.exports.findUserPostsbyID = (_id, callback) => {
+    user.findone({_id}, {posts:1}, callback)
 }
 
 module.exports.authorizedToDelete = (post, _id, callback) => {
@@ -139,6 +139,6 @@ module.exports.removePost = (post, _id, callback) => {
     user.update({_id}, {$pull: {posts: post}}, callback)
 }
 
-module.exports.delete = (_id) => {
+module.exports.delete = (_id, password, callback) => {
     user.remove({_id}, callback)
 }

@@ -1,4 +1,5 @@
 const user = require('../model/users_model')
+const post = require('../model/posts_model')
 const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')
@@ -122,18 +123,37 @@ module.exports.logOffAllOtherSessions = (req, res) => {
 }
 
 module.exports.delete = (req, res) => {
-    bcrypt.compare()
-    user.delete(req.user.id , (error, data) => {
-        console.log(data)
-        if(error)
-            res.status(500).json({
-                error: true,
-                data: "database error"
+    comparePasswordbyID(_id, password, (err, ok) => {
+        if (ok) {
+            user.findUserPostsbyID(_id, (error, urls) => {
+                if(error)
+                    return res.status(500).json({
+                        error:true,
+                        data: "Database error"
+                    })
+                else
+                    post.batchDelete(urls, (error, data) => {
+                        if(error)
+                            return res.status(400).json({error: true, data})
+                        else
+                            return res.status(200).json({error: false, data: "Successfully deleted Posts"})
+                    })
+
             })
+            user.delete(req.user.id, req.body.password, (userDeleteError, data) => {
+                if(error)
+                    res.status(500).json({
+                        error: true,
+                        data: "Database error"
+                    })
+                else
+                    res.status(200).json({
+                        error: null,
+                        data: "Successfully deleted user"
+                    })
+            })
+        }
         else
-            res.status(200).json({
-                error: null,
-                data: "Successfully deleted user"
-            })
+            callback(true, "Password Was Incorrect")
     })
 }

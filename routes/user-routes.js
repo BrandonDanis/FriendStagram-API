@@ -10,4 +10,5 @@ module.exports = function (app) {
     app.put('/user/:username', auth.authenticate, usersController.changeUser)
     app.get('/logOff', auth.authenticate, usersController.logOff)
     app.get('/logOffAllOtherSessions', auth.authenticate, usersController.logOffAllOtherSessions)
+    app.delete('/users' , auth.authenticate, usersController.delete)
 };

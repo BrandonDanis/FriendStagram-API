@@ -128,7 +128,7 @@ module.exports.findUserPostsbyUsername = (username, callback) => {
 }
 
 module.exports.findUserPostsbyID = (_id, callback) => {
-    user.findone({_id}, {posts:1}, callback)
+    user.findOne({_id}, {posts:1}, callback)
 }
 
 module.exports.authorizedToDelete = (post, _id, callback) => {
@@ -139,6 +139,7 @@ module.exports.removePost = (post, _id, callback) => {
     user.update({_id}, {$pull: {posts: post}}, callback)
 }
 
-module.exports.delete = (_id, password, callback) => {
+module.exports.delete = (_id, callback) => {
+    console.log(_id)
     user.remove({_id}, callback)
 }

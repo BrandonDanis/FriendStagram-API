@@ -123,37 +123,41 @@ module.exports.logOffAllOtherSessions = (req, res) => {
 }
 
 module.exports.delete = (req, res) => {
-    comparePasswordbyID(_id, password, (err, ok) => {
+    user.comparePasswordbyID(req.user.id, req.body.password, (err, ok) => {
         if (ok) {
-            user.findUserPostsbyID(_id, (error, urls) => {
+            user.findUserPostsbyID(req.user.id, (error, urls) => {
+                console.log(urls)
                 if(error)
                     return res.status(500).json({
                         error:true,
                         data: "Database error"
                     })
-                else
-                    post.batchDelete(urls, (error, data) => {
+                else if(urls.posts)
+                    post.batchDelete(urls.posts, (error, data) => {
                         if(error)
                             return res.status(400).json({error: true, data})
                         else
-                            return res.status(200).json({error: false, data: "Successfully deleted Posts"})
+                            user.delete(req.user.id, (userDeleteError, data) => {
+                                if(userDeleteError)
+                                    res.status(500).json({
+                                        error: true,
+                                        data: "Database error"
+                                    })
+                                else
+                                    res.status(200).json({
+                                        error: null,
+                                        data: "Successfully deleted user"
+                                    })
+                            })
                     })
 
             })
-            user.delete(req.user.id, req.body.password, (userDeleteError, data) => {
-                if(error)
-                    res.status(500).json({
-                        error: true,
-                        data: "Database error"
-                    })
-                else
-                    res.status(200).json({
-                        error: null,
-                        data: "Successfully deleted user"
-                    })
-            })
+
         }
         else
-            callback(true, "Password Was Incorrect")
+            res.json({
+                error: true,
+                data: "Password Was Incorrect"
+            })
     })
 }

@@ -5,7 +5,7 @@ const qs = require('querystring');
 
 module.exports.addPosts = (req, res) => {
     var userID = req.user.id;
-    post.addPosts(req.body.description, req.body.url, req.body.tags, function (err, data) {
+    post.addPosts(req.body.description, req.body.url, req.body.tags, req.user.id, function (err, data) {
         if(err)
             return res.status(400).json({error: true, data: null})
         user.linkPosts(userID, data, function (err, data) {

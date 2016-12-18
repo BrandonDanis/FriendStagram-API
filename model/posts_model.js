@@ -11,17 +11,19 @@ var postSchema = new Schema({
         require: [true, "Must Enter an URL"]
     },
     timeStamp: Date,
-    tags: [String]
+    tags: [String],
+    owner: Schema.Types.ObjectId
 })
 
 var post = mongoose.model('post', postSchema)
 
-module.exports.addPosts = (description, url, tags, callback) => {
+module.exports.addPosts = (description, url, tags, owner, callback) => {
     post.create({
         description, 
         url,
         timeStamp : new Date(),
-        tags
+        tags,
+        owner
     }, (err, docs) => {
         if (err)
             callback(true)

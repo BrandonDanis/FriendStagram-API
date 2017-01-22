@@ -1,7 +1,7 @@
-const mongoose = require('mongoose');
-var Schema = mongoose.Schema;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
+const mongoose = require('mongoose')
+var Schema = mongoose.Schema
+var db = mongoose.connection
+db.on('error', console.error.bind(console, 'connection error:'))
 
 
 var postSchema = new Schema({

@@ -1,10 +1,10 @@
-const user = require('../model/users_model');
-const post = require('../model/posts_model');
-const utils = require('../utils/util');
-const qs = require('querystring');
+const user = require('../model/users_model')
+const post = require('../model/posts_model')
+const utils = require('../utils/util')
+const qs = require('querystring')
 
 module.exports.addPosts = (req, res) => {
-    var userID = req.user.id;
+    var userID = req.user.id
     post.addPosts(req.body.description, req.body.url, req.body.tags, req.user.id, function (err, data) {
         if(err)
             return res.status(400).json({error: true, data: null})
@@ -12,13 +12,13 @@ module.exports.addPosts = (req, res) => {
             res.status(err ? 404 : 200).json({
                 error: err,
                 data: data
-            });
-        });
-    });
+            })
+        })
+    })
 }
 
 module.exports.getPostsByUser = (req, res) => {
-    var userName = req.params.username;
+    var userName = req.params.username
     user.findUserPostsbyUsername(userName, (err, posts) => {
         post.getURLsByIDs(posts.posts, req.query.sort, (err, urls) => {
             res.status(err ? 404 : 200).json({

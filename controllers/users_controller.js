@@ -56,13 +56,13 @@ module.exports.findUser = (req, res) => {
                 404).json({
             'error': err,
             'data': data
-        });
+        })
     })
 }
 
 module.exports.login = (req, res) => {
-    var username = req.body.username;
-    var password = req.body.password;
+    var username = req.body.username
+    var password = req.body.password
     if (utils.isEmpty(username)) {
         res.status(401).json({
             error: true,

@@ -1,11 +1,11 @@
-var mongoose = require('mongoose');
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
-const uuid = require('uuid');
-var Schema = mongoose.Schema;
-mongoose.Promise = global.Promise;
-var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
+var mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+const uuid = require('uuid')
+var Schema = mongoose.Schema
+mongoose.Promise = global.Promise
+var db = mongoose.connection
+db.on('error', console.error.bind(console, 'connection error:'))
 
 var userSchema = new Schema({
     username: {
@@ -110,13 +110,13 @@ module.exports.changePassword = (_id, password, newPassword, callback) => {
 
 module.exports.logOff = (_id, requestedSession, callback) => {
     user.update({_id}, {$pull: {openSessions: requestedSession}}, (err, ok) => {
-        callback(err, ok);
+        callback(err, ok)
     })
 }
 
 module.exports.logOffAllOtherSessions = (_id, requestedSession, callback) => {
     user.update({_id}, {openSessions: [requestedSession]}, (err, ok) => {
-        callback(err, ok);
+        callback(err, ok)
     })
 }
 

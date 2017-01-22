@@ -1,12 +1,12 @@
-const cfg = require('./config');
-const jwt = require('jwt-simple');
-const user = require('./model/users_model');
+const cfg = require('./config')
+const jwt = require('jwt-simple')
+const user = require('./model/users_model')
 
 
 module.exports.authenticate = (req, res, next) => {
     var token = req.get('token')
     try {
-        var {id, uuid} = jwt.decode(token, cfg.jwtSecret);
+        var {id, uuid} = jwt.decode(token, cfg.jwtSecret)
         console.log(id, uuid)
     }
     catch (e) {
@@ -27,10 +27,10 @@ module.exports.authenticate = (req, res, next) => {
                 data: 'User not logged in'
             })
         }
-        req.user = {id, uuid};
-        next();
+        req.user = {id, uuid}
+        next()
     })
-};
+}
 
 module.exports.authorizedToDelete = (req, res, next) => {
     user.authorizedToDelete(req.body.post, req.user.id, (err, authorized) => {

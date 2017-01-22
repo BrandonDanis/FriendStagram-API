@@ -11,13 +11,20 @@ var userSchema = new Schema({
     username: {
         type: String,
         unique: true,
-        require: [true, 'Must Enter a User Name']
+        require: [true, 'Must Enter a User User Name']
     },
     password: {
         type: String,
         require: [true, 'Must Enter a Password']
     },
-    email: String,
+    email: {
+        type: String,
+        require: [true, 'Must Enter a Email']
+    },
+    name: {
+        type: String,
+        require: [true, 'Must Enter a Name']
+    },
     posts: [Schema.Types.ObjectId],
     openSessions: [String],
     followers: [Schema.Types.ObjectId],
@@ -26,9 +33,9 @@ var userSchema = new Schema({
 
 var user = mongoose.model('user', userSchema)
 
-module.exports.register = (username, unHashedPassword, callback) => {
+module.exports.register = (username, unHashedPassword, email, name, callback) => {
     bcrypt.hash(unHashedPassword, saltRounds, (err, password) => {
-        user.create({username, password}, (err, docs) => {
+        user.create({username, password, email, name}, (err, docs) => {
             callback(err, docs)
         })
     })

@@ -14,19 +14,30 @@ module.exports.findAllUsers = (req, res) => {
     })
 }
 
-module.exports.register = ({body: {username = null, password = null}}, res) => {
+module.exports.register = ({body: {username = null, password = null, email = null, name = null}}, res) => {
+    var errorMessage = ""
+
     if (utils.isEmpty(username)) {
+        errorMessage+="Username is Null\n"
+    }
+    if (utils.isEmpty(password)) {
+        errorMessage+="Password is Null\n"
+    }
+    if(utils.isEmpty(email)){
+        errorMessage+="Email is Null\n"
+    }
+    if(utils.isEmpty(name)){
+        errorMessage+="Name is Null\n"
+    }
+
+    if(!utils.isEmpty(errorMessage)){
         res.status(401).json({
             error: true,
-            data: "Username is Null"
+            data: errorMessage
         })
-    } else if (utils.isEmpty(password)) {
-        res.status(401).json({
-            error: true,
-            data: "password is Null"
-        })
-    } else {
-        user.register(username, password, (err, data) => {
+    }
+    else {
+        user.register(username, password, email, name, (err, data) => {
             res.status(err ? 500 : 201).json({
                 error: err,
                 data: data

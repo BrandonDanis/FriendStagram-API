@@ -9,7 +9,12 @@ mongoose.connect('mongodb://localhost/test')
 app.use(bodyParser.json())
 app.use(logger('dev'))
 
-require('./routes/user-routes')(app)
-require('./routes/post-routes')(app)
+app.get('/ping', (req, res) => {
+    res.json({
+        message: 'pong'
+    })
+})
+app.use('/users', require('./routes/user-routes'))
+app.use('/posts', require('./routes/post-routes'))
 
 app.listen(process.env.PORT || 8080)

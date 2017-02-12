@@ -7,8 +7,8 @@ const auth = require('../auth.js')
     app.delete('/' , auth.authenticate, usersController.delete)
 
     app.post('/login', usersController.login)
-    app.get('/logOff', auth.authenticate, usersController.logOff)
-    app.get('/logOffAllOtherSessions', auth.authenticate, usersController.logOffAllOtherSessions)
+    app.get('/logoff', auth.authenticate, usersController.logOff)
+    app.get('/logoffallothersessions', auth.authenticate, usersController.logOffAllOtherSessions)
 
     app.get('/:username', usersController.findUser)
     app.put('/:username', auth.authenticate, usersController.changeUser)

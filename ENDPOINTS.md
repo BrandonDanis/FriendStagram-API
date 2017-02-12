@@ -12,25 +12,25 @@ POST /users                       //register user
     * name
     * email
     
-GET /user/:username               //return specific user  
+GET /users/:username               //return specific user
 
-POST /login           
+POST /users/login
   Body:
     * username
     * password
 
-PUT /user/:username               //modify user
+PUT /users/:username               //modify user
   Header:
     * token
   Body:
     * password
     * (Future to allow other changes)
 
-GET /logOff 
+GET /users/logoff
   Header:
     * token
 
-GET /logOffAllOtherSessions       //log off all other sessions on other devices
+GET /users/logoffallothersessions       //log off all other sessions on other devices
   Header:
     * token
 

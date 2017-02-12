@@ -1,14 +1,17 @@
-const mongooseUser = require('../model/users_model')
+const app = require('express').Router()
 const usersController = require('../controllers/users_controller')
 const auth = require('../auth.js')
 
-module.exports = function (app) {
-    app.get('/users', usersController.findAllUsers)
-    app.post('/users', usersController.register)
-    app.get('/user/:username', usersController.findUser)
+    app.get('/', usersController.findAllUsers)
+    app.post('/', usersController.register)
+    app.delete('/' , auth.authenticate, usersController.delete)
+
     app.post('/login', usersController.login)
-    app.put('/user/:username', auth.authenticate, usersController.changeUser)
     app.get('/logOff', auth.authenticate, usersController.logOff)
     app.get('/logOffAllOtherSessions', auth.authenticate, usersController.logOffAllOtherSessions)
-    app.delete('/users' , auth.authenticate, usersController.delete)
-}
+
+    app.get('/:username', usersController.findUser)
+    app.put('/:username', auth.authenticate, usersController.changeUser)
+
+
+module.exports = app

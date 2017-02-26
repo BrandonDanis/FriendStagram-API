@@ -29,6 +29,15 @@ module.exports.getPostsByUser = (req, res) => {
     })
 }
 
+module.exports.getPostByID = (req, res) => {
+    post.getPostByID(req.params.postid, (err, urls) => {
+        res.status(err ? 404 : 200).json({
+            error: err,
+            data: urls
+        })
+    })
+}
+
 module.exports.search = (req, res) => {
     var {limit, sort, tags, offset} = req.query
     if(limit)

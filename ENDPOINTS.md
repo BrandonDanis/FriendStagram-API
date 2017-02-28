@@ -51,8 +51,10 @@ POST /posts
     * description
     * url
     * tags
-    
-GET /posts/:username
+
+GET /posts/id/:username
+
+GET /posts/user/:username
 GET /posts
   Query:
     * limit

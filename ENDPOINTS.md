@@ -52,7 +52,7 @@ POST /posts
     * url
     * tags
 
-GET /posts/id/:username
+GET /posts/id/:postid
 
 GET /posts/user/:username
 GET /posts

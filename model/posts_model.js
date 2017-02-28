@@ -37,6 +37,10 @@ module.exports.getURLsByIDs = (idList, sort, callback) => {
         .sort(sort ? JSON.parse(sort):{})
 }
 
+module.exports.getPostByID = (id, callback) => {
+    post.findById(id, {url: 1, description: 1, tags: 1, owner: 1, timestamp: 1}, callback)
+}
+
 module.exports.search = (queryParams, callback) => {
     var {tags, offset = 0, limit = 15, sort, description} = queryParams
 

@@ -3,18 +3,35 @@ const post = require('../model/posts_model')
 const utils = require('../utils/util')
 const qs = require('querystring')
 
-module.exports.addPosts = (req, res) => {
-    var userID = req.user.id
-    post.addPosts(req.body.description, req.body.url, req.body.tags, req.user.id, function (err, data) {
-        if(err)
-            return res.status(400).json({error: true, data: null})
-        user.linkPosts(userID, data, function (err, data) {
-            res.status(err ? 404 : 200).json({
-                error: err,
-                data: data
+module.exports.addPosts = ({user: {id}, body: {url}}, res) => {
+    
+    var errorMessage = ""
+
+    if (utils.isEmpty(userID)) {
+        errorMessage+="User ID is Null\n"
+    }
+    if (utils.isEmpty(url)) {
+        errorMessage+="URL is Null\n"
+    }
+
+    if(!utils.isEmpty(errorMessage)){
+        res.status(401).json({
+            error: true,
+            data: errorMessage
+        })
+    }
+    else {
+        post.addPosts(req.body.description, req.body.url, req.body.tags, req.user.id, function (err, data) {
+            if(err)
+                return res.status(400).json({error: true, data: null})
+            user.linkPosts(userID, data, function (err, data) {
+                res.status(err ? 404 : 200).json({
+                    error: err,
+                    data: data
+                })
             })
         })
-    })
+    }
 }
 
 module.exports.getPostsByUser = (req, res) => {
@@ -25,6 +42,15 @@ module.exports.getPostsByUser = (req, res) => {
                 error: err,
                 data: urls
             })
+        })
+    })
+}
+
+module.exports.getPostByID = (req, res) => {
+    post.getPostByID(req.params.postid, (err, urls) => {
+        res.status(err ? 404 : 200).json({
+            error: err,
+            data: urls
         })
     })
 }

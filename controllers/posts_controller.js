@@ -3,8 +3,9 @@ const post = require('../model/posts_model')
 const utils = require('../utils/util')
 const qs = require('querystring')
 
-module.exports.addPosts = ({user: {id}, body: {url}}, res) => {
-    
+module.exports.addPosts = (req, res) => {
+    var userID = req.user.id
+    var url = req.body.url
     var errorMessage = ""
 
     if (utils.isEmpty(userID)) {

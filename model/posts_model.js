@@ -19,7 +19,7 @@ var post = mongoose.model('post', postSchema)
 
 module.exports.addPosts = (description, url, tags, owner, callback) => {
     post.create({
-        description, 
+        description,
         url,
         timeStamp : new Date(),
         tags,
@@ -50,9 +50,8 @@ module.exports.search = (queryParams, callback) => {
     if(description)
         findParams["description"] = {$regex: new RegExp(description, "i")}
 
-    console.log(findParams)
-    post.find(findParams, {url: 1}, callback)
-        .sort(sort)
+    post.find(findParams, {description : 1, url : 1, timeStamp : 1, owner : 1}, callback)
+        .sort({timeStamp:-1})
         .skip(offset)
         .limit(limit)
 }

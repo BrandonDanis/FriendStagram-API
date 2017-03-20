@@ -131,7 +131,30 @@ module.exports.linkPosts = (userID, postID, callback) => {
 }
 
 module.exports.findUserPostsbyUsername = (username, callback) => {
-    user.findOne({username}, {posts:1}, callback)
+    user.aggregate([
+        {
+            $match: {
+                "username": username
+            }
+        },
+        {
+            $lookup: {
+                from: "posts",
+                localField: "_id",
+                foreignField: "owner",
+                as: "posts"
+            }
+        },
+        {
+            $project: {
+                "username": 1,
+                "email": 1,
+                "name": 1,
+                "posts": "$posts"
+            }
+        }
+    ], callback)
+
 }
 
 module.exports.findUserPostsbyID = (_id, callback) => {

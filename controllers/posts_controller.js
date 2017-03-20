@@ -38,11 +38,9 @@ module.exports.addPosts = (req, res) => {
 module.exports.getPostsByUser = (req, res) => {
     var userName = req.params.username
     user.findUserPostsbyUsername(userName, (err, posts) => {
-        post.getURLsByIDs(posts.posts, req.query.sort, (err, urls) => {
-            res.status(err ? 404 : 200).json({
-                error: err,
-                data: urls
-            })
+        res.status(err ? 404 : 200).json({
+            error: err,
+            data: posts
         })
     })
 }
@@ -61,7 +59,6 @@ module.exports.search = (req, res) => {
     if(limit)
         req.query.limit = parseInt(limit)
     req.query.sort = sort ? JSON.parse(sort) : {}
-
     if(offset)
         req.query.offset = parseInt(offset)
 

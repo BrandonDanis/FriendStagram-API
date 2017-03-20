@@ -50,10 +50,33 @@ module.exports.search = (queryParams, callback) => {
     if(description)
         findParams["description"] = {$regex: new RegExp(description, "i")}
 
-    post.find(findParams, {description : 1, url : 1, timeStamp : 1, owner : 1}, callback)
-        .sort({timeStamp:-1})
-        .skip(offset)
-        .limit(limit)
+    post.aggregate([
+        { $sort : { timeStamp : -1 } },
+        { $limit : limit },
+        { $skip : offset },
+        {
+            $lookup: {
+                from: "users",
+                localField: "owner",
+                foreignField: "_id",
+                as: "user"
+            }
+        },
+        {
+            $unwind: "$user"
+        },
+        {
+            $project: {
+                "_id" : 1,
+                "username" : "$user.username",
+                "user_id" : "$user._id",
+                "url" : 1,
+                "timeStamp" : 1,
+                "description" : 1
+            }
+        }
+    ], callback)
+
 }
 
 module.exports.delete = (_id, callback) => {

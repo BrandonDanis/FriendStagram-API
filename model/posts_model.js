@@ -1,46 +1,12 @@
-const mongoose = require('mongoose')
-var Schema = mongoose.Schema
-var db = mongoose.connection
-db.on('error', console.error.bind(console, 'connection error:'))
-
 var dbUrl = process.env.DATABASE_URL || 'postgres://localhost:5432/friendstagram';
 var db = require('pg-bricks').configure( dbUrl );
 
-var postSchema = new Schema({
-    description: String,
-    url: {
-        type: String,
-        require: [true, "Must Enter an URL"]
-    },
-    timeStamp: Date,
-    tags: [String],
-    owner: Schema.Types.ObjectId
-})
-
-var post = mongoose.model('post', postSchema)
-
 module.exports.addPosts = (description, url, tags, owner, callback) => {
-    post.create({
-        description,
-        url,
-        timeStamp : new Date(),
-        tags,
-        owner
-    }, (err, docs) => {
-        if (err)
-            callback(true)
-        else
-            callback(null, docs._id)
-    })
-}
-
-module.exports.getURLsByIDs = (idList, sort, callback) => {
-    post.find({_id : {$in: idList}}, {url: 1}, callback)
-        .sort(sort ? JSON.parse(sort):{})
+    db.raw('INSERT INTO posts (description, image_url, owner) VALUES ($1,$2,$3)',[description,url,owner]).row(callback)
 }
 
 module.exports.getPostByID = (id, callback) => {
-    post.findById(id, {url: 1, description: 1, tags: 1, owner: 1, timestamp: 1}, callback)
+    db.raw('SELECT * FROM posts WHERE posts.id = $1', [id]).row(callback)
 }
 
 module.exports.search = (queryParams, callback) => {
@@ -78,11 +44,10 @@ module.exports.search = (queryParams, callback) => {
             }
         }
     ], callback)
-
 }
 
 module.exports.delete = (_id, callback) => {
-    post.remove({_id} , callback)
+    db.raw('DELETE FROM posts WHERE posts.id = $1', [_id]).row(callback)
 }
 
 module.exports.batchDelete = (postsToDelete, callback) => {

@@ -46,10 +46,10 @@ module.exports.getPostsByUser = (req, res) => {
 }
 
 module.exports.getPostByID = (req, res) => {
-    post.getPostByID(req.params.postid, (err, urls) => {
+    post.getPostByID(req.params.postid, (err, data) => {
         res.status(err ? 404 : 200).json({
             error: err,
-            data: urls
+            data: data
         })
     })
 }

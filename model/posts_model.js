@@ -3,6 +3,8 @@ var Schema = mongoose.Schema
 var db = mongoose.connection
 db.on('error', console.error.bind(console, 'connection error:'))
 
+var dbUrl = process.env.DATABASE_URL || 'postgres://localhost:5432/friendstagram';
+var db = require('pg-bricks').configure( dbUrl );
 
 var postSchema = new Schema({
     description: String,

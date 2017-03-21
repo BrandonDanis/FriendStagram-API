@@ -37,9 +37,7 @@ module.exports.findUser = (username) => {
 }
 
 module.exports.findAllUsers = (callback) => {
-    user.find({}, (err, docs) => {
-        callback(err, docs)
-    })
+    db.raw('SELECT id,name,datecreated,email,description FROM users').rows(callback)
 }
 
 module.exports.authenticate = (_id, callback) => {

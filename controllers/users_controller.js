@@ -3,7 +3,6 @@ const post = require('../model/posts_model')
 const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')
-const bcrypt = require('bcrypt')
 
 module.exports.findAllUsers = (req, res) => {
     user.findAllUsers((err, data) => {
@@ -15,110 +14,120 @@ module.exports.findAllUsers = (req, res) => {
 }
 
 module.exports.register = ({body: {username = null, password = null, email = null, name = null}}, res) => {
-    var errorMessage = ""
+    let errorMessage = '';
 
     if (utils.isEmpty(username)) {
-        errorMessage+="Username is Null\n"
+        errorMessage += 'Username is Null\n'
     }
     if (utils.isEmpty(password)) {
-        errorMessage+="Password is Null\n"
+        errorMessage += 'Password is Null\n'
     }
-    if(utils.isEmpty(email)){
-        errorMessage+="Email is Null\n"
+    if (utils.isEmpty(email)) {
+        errorMessage += 'Email is Null\n'
     }
-    if(utils.isEmpty(name)){
-        errorMessage+="Name is Null\n"
+    if (utils.isEmpty(name)) {
+        errorMessage += 'Name is Null\n'
     }
 
-    if(!utils.isEmpty(errorMessage)){
+    if (!utils.isEmpty(errorMessage)) {
         res.status(401).json({
             error: true,
             data: errorMessage
         })
     }
     else {
-        user.register(username, password, email, name, (err, data) => {
+        user.register(username, password, email, name, (err) => {
             res.status(err ? 500 : 201).json({
-                error: err,
-                data: data
+                error: err !== undefined && err !== null
             })
         })
     }
-
 }
 
-module.exports.findUser = (req, res) => {
-    user.findUser(req.params.username, (err, data) => {
-        res.status(err ?
-            400 :
-            data ?
-                202 :
-                404).json({
-            'error': err,
-            'data': data
-        })
-    })
+module.exports.findUser = ({params: {username = null}}, res) => {
+    const observable = user.findUser(username);
+    observable.subscribe(
+        next => {
+            let [user, posts] = next;
+            user.posts = posts;
+            res.status(202).json({
+                error: false,
+                data: {user}
+            })
+        },
+        err => {
+            res.status(400).json({
+                error: true,
+                data: err
+            })
+        }
+    )
 }
 
-module.exports.login = (req, res) => {
-    var username = req.body.username
-    var password = req.body.password
+module.exports.login = ({body: {username = null, password = null}}, res) => {
+    let errorMessage = '';
+
     if (utils.isEmpty(username)) {
+        errorMessage += 'Username is Null\n'
+    }
+    if (utils.isEmpty(password)) {
+        errorMessage += 'Password is Null\n'
+    }
+
+    if (!utils.isEmpty(errorMessage)) {
         res.status(401).json({
             error: true,
-            data: "Username is Null"
-        })
-    } else if (utils.isEmpty(password)) {
-        res.status(401).json({
-            error: true,
-            data: "Password is Null"
-        })
+            data: errorMessage
+        });
     } else {
         //check cache here
-        user.login(username, password, (err, doc) => {
-            console.log(doc)
-            if (err || !doc) {
-                return res.status(404).json({
+        const observable = user.login(username, password)
+
+        observable.subscribe(
+            next => {
+                console.log(next);
+                const payload = {
+                    id: next.user_id,
+                    timestamp: new Date(),
+                    uuid: next.id
+                }
+                const token = jwt.encode(payload, cfg.jwtSecret);
+                res.status(200).json({
+                    error: false,
+                    data: token
+                })
+            },
+            err => {
+                res.status(404).json({
                     error: true,
                     data: 'Username and Password combination does not exist'
                 })
             }
-            var payload = {
-                id: doc.id,
-                timestamp: new Date(),
-                uuid: doc.uuid
-            }
-            var token = jwt.encode(payload, cfg.jwtSecret)
-            res.status(200).json({
-                error: null,
-                data: token
-            })
-        })
+        )
     }
 }
 
-module.exports.changeUser = (req, res) => {
-    if (req.body.hasOwnProperty("password")) {
-        user.changePassword(req.user.id, req.body.password.old, req.body.password.new, (err, docs)=> {
-            if (err || docs.nModified != 1) {
+module.exports.changeUser = ({body: {password = null}, user = null}, res) => {
+    if (password !== null) {
+        user.changePassword(user.id, password.old, password.new, (err, res) => {
+            if (err) {
                 return res.status(404).json({
                     error: true,
-                    data: "Wrong Password"
+                    data: 'Wrong Password'
                 })
             } else {
                 return res.status(200).json({
                     error: null,
-                    data: "Successfully Changed Password"
+                    data: 'Successfully Changed Password'
                 })
             }
         })
     } else {
         res.status(404).json({
             error: true,
-            data: "No Change Requested"
+            data: 'No Change Requested'
         })
     }
-
 }
 
 module.exports.logOff = (req, res) => {
@@ -138,18 +147,18 @@ module.exports.delete = (req, res) => {
         if (ok) {
             user.findUserPostsbyID(req.user.id, (error, urls) => {
                 console.log(urls)
-                if(error)
+                if (error)
                     return res.status(500).json({
-                        error:true,
+                        error: true,
                         data: "Database error"
                     })
-                else if(urls.posts)
+                else if (urls.posts)
                     post.batchDelete(urls.posts, (error, data) => {
-                        if(error)
+                        if (error)
                             return res.status(400).json({error: true, data})
                         else
                             user.delete(req.user.id, (userDeleteError, data) => {
-                                if(userDeleteError)
+                                if (userDeleteError)
                                     res.status(500).json({
                                         error: true,
                                         data: "Database error"

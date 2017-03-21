@@ -1,50 +1,39 @@
-var mongoose = require('mongoose')
-const bcrypt = require('bcrypt')
+const db = require('pg-bricks').configure(process.env.DB_URL)
+const bcrypt = require('bcrypt-nodejs')
 const saltRounds = 10
 const uuid = require('uuid')
-var Schema = mongoose.Schema
-mongoose.Promise = global.Promise
-var db = mongoose.connection
-db.on('error', console.error.bind(console, 'connection error:'))
-
-var userSchema = new Schema({
-    username: {
-        type: String,
-        unique: true,
-        require: [true, 'Must Enter a User User Name']
-    },
-    password: {
-        type: String,
-        require: [true, 'Must Enter a Password']
-    },
-    email: {
-        type: String,
-        require: [true, 'Must Enter a Email']
-    },
-    name: {
-        type: String,
-        require: [true, 'Must Enter a Name']
-    },
-    posts: [Schema.Types.ObjectId],
-    openSessions: [String],
-    followers: [Schema.Types.ObjectId],
-    following: [Schema.Types.ObjectId]
-})
-
-var user = mongoose.model('user', userSchema)
+const Rx = require('rx')
 
 module.exports.register = (username, unHashedPassword, email, name, callback) => {
-    bcrypt.hash(unHashedPassword, saltRounds, (err, password) => {
-        user.create({username, password, email, name}, (err, docs) => {
-            callback(err, docs)
+    const salt = bcrypt.genSaltSync(saltRounds);
+    bcrypt.hash(unHashedPassword, salt, null, (err, password) => {
+        db.insert('users', {username, password, email, name}).returning('*').row((err) => {
+            callback(err)
         })
     })
 }
 
-module.exports.findUser = (username, callback) => {
-    user.findOne({username}, (err, docs) => {
-        callback(err, docs)
-    })
+module.exports.findUser = (username) => {
+    const userObservable = Rx.Observable.create(observer => {
+        db.select(['name', 'username', 'datecreated', 'description', 'profile_picture_url', 'profile_background_url']).from('users').where({'username': username}).row((err, row) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
+    const postsObservable = Rx.Observable.create((observer => {
+        db.raw('SELECT * FROM posts WHERE user_id = (SELECT id FROM users WHERE username  = $1);', [username]).rows((err, rows) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(rows);
+            observer.onCompleted();
+        })
+    }))
+
+    return Rx.Observable.forkJoin(userObservable, postsObservable);
 }
 
 module.exports.findAllUsers = (callback) => {
@@ -59,52 +48,69 @@ module.exports.authenticate = (_id, callback) => {
     })
 }
 
-module.exports.comparePasswordbyID = (_id, password, callback) => {
-    user.findOne({_id},
-        {username: 1, password: 1},(err, docs) => {
-            if (err || !docs)
-                return callback(true)
-            else
-                bcrypt.compare(password, docs.password, callback)
-        })
+module.exports.comparePasswordbyID = (id, password, callback) => {
+    db.select(['password']).from('users').where({id}).row((err, row) => {
+        if (err)
+            callback(true);
+        else
+            bcrypt.compare(password, row.password, callback);
+    });
+    /*user.findOne({_id},
+     {username: 1, password: 1}, (err, docs) => {
+     if (err || !docs)
+     return callback(true)
+     else
+     bcrypt.compare(password, docs.password, callback)
+     })*/
 }
 
-module.exports.login = (username, password, callback) => {
-    user.findOne({username},
-        {username: 1, password: 1},(err, docs) => {
-            if (err || !docs)
-                return callback(true)
+module.exports.login = (username, password) => {
+    return Rx.Observable.create((observer => {
+        db.select(['username', 'password']).from('users').where({username}).row((err, row) => {
+            if (err)
+                observer.onError(err);
             else
-                bcrypt.compare(password, docs.password,  (username, password, (err, ok) => {
-                    if (ok) {
-                        var res = {}
-                        res.id = docs._id
-                        res.uuid = uuid.v4()
-                        user.update({username}, {$push: {"openSessions": res.uuid}}, (err, ok) => {
-                            if (err || !ok)
-                                return callback(true, "Please log in again")
-                            else {
-                                return callback(err, res)
-                            }
-                        })
-                    } else
-                        callback(true)
-                }))
+                observer.onNext(row.password);
+            observer.onCompleted();
         })
-
+    })).flatMap(hashedPassword => {
+        return Rx.Observable.create(observer => {
+            bcrypt.compare(password, hashedPassword, (err, res) => {
+                if (err || !res) {
+                    console.error(err);
+                    console.log(res);
+                    observer.onError('An error occurred. Please log in again!');
+                    observer.onCompleted();
+                } else {
+                    db.raw('INSERT INTO users_sessions VALUES($1, (SELECT id FROM users WHERE username = $2)) RETURNING *;', [uuid.v4(), username]).row((err, row) => {
+                        if (err)
+                            observer.onError(err);
+                        else
+                            observer.onNext(row);
+                        observer.onCompleted();
+                    });
+                }
+            });
+        });
+    });
 }
 
-module.exports.changePassword = (_id, password, newPassword, callback) => {
-    comparePasswordbyID(_id, password, (err, ok) => {
+module.exports.changePassword = (id, password, newPassword, callback) => {
+    comparePasswordbyID(id, password, (err, ok) => {
         if (ok) {
-            bcrypt.hash(newPassword, saltRounds, (err, hashedPassword) => {
-                user.update({_id}, {password: hashedPassword}, (err, docs) => {
-                    callback(err, docs)
-                })
+            bcrypt.hash(newPassword, saltRounds, null, (err, hashedPassword) => {
+                if (err) {
+                    console.error(err);
+                    callback(true, 'An error occurred. Please try again')
+                } else {
+                    db.update('users').set('password', hashedPassword).where({id}).returning('*').row((err, row) => {
+                        callback(err, row);
+                    });
+                }
             })
         }
         else
-            callback(true, "Password Was Incorrect")
+            callback(true, 'Password Was Incorrect')
     })
 }
 
@@ -158,7 +164,7 @@ module.exports.findUserPostsbyUsername = (username, callback) => {
 }
 
 module.exports.findUserPostsbyID = (_id, callback) => {
-    user.findOne({_id}, {posts:1}, callback)
+    user.findOne({_id}, {posts: 1}, callback)
 }
 
 module.exports.authorizedToDelete = (post, _id, callback) => {

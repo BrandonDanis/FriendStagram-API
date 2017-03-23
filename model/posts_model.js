@@ -1,5 +1,4 @@
-var dbUrl = process.env.DATABASE_URL || 'postgres://localhost:5432/friendstagram';
-var db = require('pg-bricks').configure( dbUrl );
+var db = require('pg-bricks').configure(process.env.DB_URL);
 
 module.exports.addPosts = (description, url, tags, owner, callback) => {
     db.raw('INSERT INTO posts (description, image_url, owner) VALUES ($1,$2,$3)',[description,url,owner]).row(callback)

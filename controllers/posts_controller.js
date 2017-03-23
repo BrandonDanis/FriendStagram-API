@@ -35,16 +35,6 @@ module.exports.addPosts = (req, res) => {
     }
 }
 
-module.exports.getPostsByUser = (req, res) => {
-    var userName = req.params.username
-    user.findUserPostsbyUsername(userName, (err, posts) => {
-        res.status(err ? 404 : 200).json({
-            error: err,
-            data: posts
-        })
-    })
-}
-
 module.exports.getPostByID = (req, res) => {
     post.getPostByID(req.params.postid, (err, data) => {
         res.status(err ? 404 : 200).json({

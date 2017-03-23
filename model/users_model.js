@@ -5,13 +5,29 @@ const uuid = require('uuid')
 const Rx = require('rx')
 
 module.exports.register = (username, unHashedPassword, email, name, callback) => {
-    const salt = bcrypt.genSaltSync(saltRounds);
-    bcrypt.hash(unHashedPassword, salt, null, (err, password) => {
-        db.insert('users', {username, password, email, name}).returning('*').row((err) => {
-            callback(err)
-        })
-    })
-}
+    return Rx.Observable.create(observer => observer.onNext(bcrypt.genSaltSync(saltRounds)))
+        .flatMap(salt => {
+            return Rx.Observable.create(observer => {
+                bcrypt.hash(unHashedPassword, salt, null, (err, password) => {
+                    if (err)
+                        observer.onError(err);
+                    else
+                        observer.onNext(password);
+                    observer.onCompleted();
+                });
+            });
+        }).flatMap(password => {
+            return Rx.Observable.create(observer => {
+                db.insert('users', {username, password, email, name}).run((err) => {
+                    if (err)
+                        observer.onError(err);
+                    else
+                        observer.onNext('');
+                    observer.onCompleted();
+                });
+            })
+        });
+};
 
 module.exports.findUser = (username) => {
     const userObservable = Rx.Observable.create(observer => {
@@ -31,19 +47,37 @@ module.exports.findUser = (username) => {
                 observer.onNext(rows);
             observer.onCompleted();
         })
-    }))
+    }));
 
     return Rx.Observable.forkJoin(userObservable, postsObservable);
-}
+};
 
 module.exports.findAllUsers = (callback) => {
     db.raw('SELECT id,name,datecreated,email,description FROM users').rows(callback)
 }
 
-module.exports.authenticate = (_id, callback) => {
-    user.findOne({_id}, (err, docs) => {
-        callback(err, docs)
-    })
+module.exports.authenticate = (id, uuid) => {
+    const getUserObservable = Rx.Observable.create(observer => {
+        db.select('id').from('users').where({id}).row((err, row) => {
+            if (err)
+                observer.onError({error: err, table: 'users'});
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
+
+    const getUserSessionsObservable = Rx.Observable.create(observer => {
+        db.select('id').from('users_sessions').where({'id': uuid}).row((err, row) => {
+            if (err)
+                observer.onError({error: err, table: 'users_sessions'});
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
+
+    return Rx.Observable.forkJoin(getUserObservable, getUserSessionsObservable);
 }
 
 module.exports.comparePasswordbyID = (id, password, callback) => {
@@ -53,13 +87,6 @@ module.exports.comparePasswordbyID = (id, password, callback) => {
         else
             bcrypt.compare(password, row.password, callback);
     });
-    /*user.findOne({_id},
-     {username: 1, password: 1}, (err, docs) => {
-     if (err || !docs)
-     return callback(true)
-     else
-     bcrypt.compare(password, docs.password, callback)
-     })*/
 }
 
 module.exports.login = (username, password) => {
@@ -112,16 +139,28 @@ module.exports.changePassword = (id, password, newPassword, callback) => {
     })
 }
 
-module.exports.logOff = (_id, requestedSession, callback) => {
-    user.update({_id}, {$pull: {openSessions: requestedSession}}, (err, ok) => {
-        callback(err, ok)
-    })
+module.exports.logOff = (id) => {
+    return Rx.Observable.create(observer => {
+        db.delete('users_sessions').where({id}).run((err) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext('');
+            observer.onCompleted();
+        })
+    });
 }
 
-module.exports.logOffAllOtherSessions = (_id, requestedSession, callback) => {
-    user.update({_id}, {openSessions: [requestedSession]}, (err, ok) => {
-        callback(err, ok)
-    })
+module.exports.logOffAllOtherSessions = (id, requestedSession) => {
+    return Rx.Observable.create(observer => {
+        db.raw('DELETE FROM users_sessions WHERE id NOT IN ($1) AND user_id = $2', [requestedSession, id]).run(err => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext('');
+            observer.onCompleted();
+        });
+    });
 }
 
 //POST METHODS

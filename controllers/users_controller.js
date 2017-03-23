@@ -36,11 +36,19 @@ module.exports.register = ({body: {username = null, password = null, email = nul
         })
     }
     else {
-        user.register(username, password, email, name, (err) => {
-            res.status(err ? 500 : 201).json({
-                error: err !== undefined && err !== null
+        user.register(username, password, email, name).subscribe(
+            () =>
+                res.status(201).json({
+                    error: false,
+                    data: null
+                }),
+            err => {
+                console.error(err);
+                res.status(500).json({
+                    error: true,
+                    data: null
+                })
             })
-        })
     }
 }
 
@@ -131,15 +139,40 @@ module.exports.changeUser = ({body: {password = null}, user = null}, res) => {
 }
 
 module.exports.logOff = (req, res) => {
-    user.logOff(req.user.id, req.user.uuid, (error, data) => {
-        res.status(error ? 400 : 200).json({error, data})
-    })
+    const logOffObservable = user.logOff(req.user.uuid);
+    logOffObservable.subscribe(
+        () => res.status(200).json({
+            error: false,
+            data: null
+        }),
+        err => {
+            console.error(err);
+            res.status(400).json({
+                error: true,
+                data: null
+            });
+        }
+    );
 }
 
 module.exports.logOffAllOtherSessions = (req, res) => {
-    user.logOffAllOtherSessions(req.user.id, req.user.uuid, (error, data) => {
+    const logOffObservable = user.logOffAllOtherSessions(req.user.id, req.user.uuid);
+    logOffObservable.subscribe(
+        () => res.status(200).json({
+            error: false,
+            data: null
+        }),
+        err => {
+           console.error(err);
+           res.status(400).json({
+               error: true,
+               data: null
+           })
+        }
+    )
+    /*, (error, data) => {
         res.status(error ? 400 : 200).json({error, data})
-    })
+    })*/
 }
 
 module.exports.delete = (req, res) => {

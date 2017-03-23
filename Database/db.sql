@@ -58,7 +58,6 @@ DROP TABLE IF EXISTS users_sessions;
 CREATE TABLE users_sessions (
     id UUID NOT NULL,
     user_id INTEGER NOT NULL,
-    active INTEGER NOT NULL DEFAULT 1,
     PRIMARY KEY (id, user_id),
     FOREIGN KEY (user_id) REFERENCES users (id)
 );

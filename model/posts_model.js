@@ -1,7 +1,7 @@
 var db = require('pg-bricks').configure(process.env.DB_URL);
 
 module.exports.addPosts = (description, url, tags, owner, callback) => {
-    db.raw('INSERT INTO posts (description, image_url, owner) VALUES ($1,$2,$3)',[description,url,owner]).row(callback)
+    db.raw('INSERT INTO posts (description, image_url, user_id) VALUES ($1,$2,$3) RETURNING *',[description,url,owner]).row(callback)
 }
 
 module.exports.getPostByID = (id, callback) => {

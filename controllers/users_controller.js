@@ -60,7 +60,7 @@ module.exports.findUser = ({params: {username = null}}, res) => {
             user.posts = posts;
             res.status(202).json({
                 error: false,
-                data: {user}
+                data: user
             })
         },
         err => {
@@ -89,7 +89,7 @@ module.exports.login = ({body: {username = null, password = null}}, res) => {
         });
     } else {
         //check cache here
-        const observable = user.login(username, password)
+        const observable = user.login(username, password);
 
         observable.subscribe(
             next => {
@@ -98,14 +98,14 @@ module.exports.login = ({body: {username = null, password = null}}, res) => {
                     id: next.user_id,
                     timestamp: new Date(),
                     uuid: next.id
-                }
+                };
                 const token = jwt.encode(payload, cfg.jwtSecret);
                 res.status(200).json({
                     error: false,
                     data: token
                 })
             },
-            err => {
+            () => {
                 res.status(404).json({
                     error: true,
                     data: 'Username and Password combination does not exist'
@@ -163,52 +163,37 @@ module.exports.logOffAllOtherSessions = (req, res) => {
             data: null
         }),
         err => {
-           console.error(err);
-           res.status(400).json({
-               error: true,
-               data: null
-           })
+            console.error(err);
+            res.status(400).json({
+                error: true,
+                data: null
+            })
         }
     )
-    /*, (error, data) => {
-        res.status(error ? 400 : 200).json({error, data})
-    })*/
 }
 
 module.exports.delete = (req, res) => {
     user.comparePasswordbyID(req.user.id, req.body.password, (err, ok) => {
         if (ok) {
-            user.findUserPostsbyID(req.user.id, (error, urls) => {
-                console.log(urls)
-                if (error)
-                    return res.status(500).json({
+            const deleteUserObservable = user.delete(req.user.id);
+            deleteUserObservable.subscribe(
+                () => {
+                    res.status(200).json({
                         error: true,
-                        data: "Database error"
+                        data: 'Successfully deleted user'
                     })
-                else if (urls.posts)
-                    post.batchDelete(urls.posts, (error, data) => {
-                        if (error)
-                            return res.status(400).json({error: true, data})
-                        else
-                            user.delete(req.user.id, (userDeleteError, data) => {
-                                if (userDeleteError)
-                                    res.status(500).json({
-                                        error: true,
-                                        data: "Database error"
-                                    })
-                                else
-                                    res.status(200).json({
-                                        error: null,
-                                        data: "Successfully deleted user"
-                                    })
-                            })
+                },
+                err => {
+                    console.error(err);
+                    res.status(500).json({
+                        error: true,
+                        data: null
                     })
-
-            })
-
+                }
+            )
         }
         else
-            res.json({
+            res.status(403).json({
                 error: true,
                 data: "Password Was Incorrect"
             })

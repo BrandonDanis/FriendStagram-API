@@ -37,24 +37,27 @@ module.exports.authenticate = (req, res, next) => {
             data: 'bad token'
         })
     }
-    /*, (err, docs) => {
-     if (err || !docs) {
-     return res.status(404).json({
-     error: true,
-     data: 'User not found'
-     })
-     } else if (!docs.openSessions.includes(uuid)) {
-     return res.status(412).json({
-     error: true,
-     data: 'User not logged in'
-     })
-     }
-     }
-     )*/
 }
 
 module.exports.authorizedToDelete = (req, res, next) => {
-    user.authorizedToDelete(req.body.post, req.user.id, (err, authorized) => {
+    const deleteAuthorizationObservable = user.authorizedToDelete(req.body.post, req.user.id);
+    deleteAuthorizationObservable.subscribe(
+        () => next(),
+        err => {
+            console.error(err);
+            if (err.message.indexOf('Expected a row') > -1)
+                res.status(401).json({
+                    error: true,
+                    data: 'User does not have right to delete this post'
+                });
+            else
+                res.status(500).json({
+                    error: true,
+                    data: null
+                });
+        }
+    );
+    /*, (err, authorized) => {
         if (err) {
             return res.status(500).json({
                 error: true,
@@ -67,6 +70,6 @@ module.exports.authorizedToDelete = (req, res, next) => {
             })
         }
         next()
-    })
-}
+    })*/
+};
 

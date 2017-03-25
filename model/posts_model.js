@@ -1,54 +1,98 @@
-var db = require('pg-bricks').configure(process.env.DB_URL);
+const db = require('pg-bricks').configure(process.env.DB_URL);
+const Rx = require('rx');
 
-module.exports.addPosts = (description, url, tags, owner, callback) => {
-    db.raw('INSERT INTO posts (description, image_url, user_id) VALUES ($1,$2,$3) RETURNING *',[description,url,owner]).row(callback)
+module.exports.addPosts = (description, url, tags, owner) => {
+    return Rx.Observable.create(observer => {
+        db.insert('posts', {description, 'image_url': url, 'user_id': owner}).returning('*').row((err, row) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
 }
 
-module.exports.getPostByID = (id, callback) => {
-    db.raw('SELECT * FROM posts WHERE posts.id = $1', [id]).row(callback)
+module.exports.getPostByID = (id) => {
+    return Rx.Observable.create(observer => {
+        db.select().from('posts').where({id}).row((err, row) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
 }
 
-module.exports.search = (queryParams, callback) => {
-    var {tags, offset = 0, limit = 15, sort, description} = queryParams
+// TODO: add sort
+module.exports.search = (queryParams) => {
+    const {tags, offset = 0, limit = 15, sort, description} = queryParams;
 
-    var findParams = {}
+    let findParams = {};
     if(tags)
-        findParams["tags"] = tags
+        findParams.tags = tags;
     if(description)
-        findParams["description"] = {$regex: new RegExp(description, "i")}
+        findParams.description = {$regex: new RegExp(description, "i")};
 
-    post.aggregate([
-        { $sort : { timeStamp : -1 } },
-        { $limit : limit },
-        { $skip : offset },
-        {
-            $lookup: {
-                from: "users",
-                localField: "owner",
-                foreignField: "_id",
-                as: "user"
-            }
-        },
-        {
-            $unwind: "$user"
-        },
-        {
-            $project: {
-                "_id" : 1,
-                "username" : "$user.username",
-                "user_id" : "$user._id",
-                "url" : 1,
-                "timeStamp" : 1,
-                "description" : 1
-            }
-        }
-    ], callback)
+    const getPosts = (observer, postIDs) => {
+        const hasIDs = postIDs !== undefined;
+        const postIDQuery = hasIDs ? ' AND id IN $4' : '';
+        let params = [`%${description}%`, offset, limit];
+        if (hasIDs)
+            params.push(postIDs);
+
+        db.raw(`SELECT * FROM POSTS WHERE DESCRIPTION LIKE $1${postIDQuery} OFFSET $2 LIMIT $3`, params).rows((err, rows) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(rows);
+            observer.onCompleted();
+        })
+    };
+
+    if (tags !== undefined && tags.length > 0) {
+        const getTagsObservable = Rx.Observable.create(observer => {
+           db.select('pt.post_id').from('post_tags as pt').join('tags t').on('t.id', 'pt.tag_id').where($in('t.name', tags)).rows((err, rows) => {
+               if (err)
+                   observer.onError(err);
+               else
+                   observer.onNext(rows);
+               observer.onCompleted();
+           })
+        });
+        return getTagsObservable.flatMap(postIDs => {
+            return Rx.Observable.create(observer => {
+                getPosts(observer, postIDs);
+            });
+        });
+    }
+
+    return Rx.Observable.create(observer => {
+        getPosts(observer);
+    });
 }
 
-module.exports.delete = (_id, callback) => {
-    db.raw('DELETE FROM posts WHERE posts.id = $1', [_id]).row(callback)
+module.exports.delete = (id) => {
+    return Rx.Observable.create(observer => {
+        db.delete().from('posts').where({id}).run(err => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext('');
+            observer.onCompleted();
+        });
+    });
 }
 
-module.exports.batchDelete = (postsToDelete, callback) => {
-    post.remove({_id: { $in: postsToDelete}}, callback)
+module.exports.batchDelete = (postsToDelete) => {
+    return Rx.Observable.create(observer => {
+       db.delete().from('posts').where($in('id', postsToDelete)).run(err => {
+           if (err)
+               observer.onError(err);
+           else
+               observer.onNext('');
+           observer.onCompleted();
+       })
+    });
 }

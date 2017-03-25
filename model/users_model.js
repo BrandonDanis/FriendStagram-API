@@ -4,7 +4,7 @@ const saltRounds = 10
 const uuid = require('uuid')
 const Rx = require('rx')
 
-module.exports.register = (username, unHashedPassword, email, name, callback) => {
+module.exports.register = (username, unHashedPassword, email, name) => {
     return Rx.Observable.create(observer => observer.onNext(bcrypt.genSaltSync(saltRounds)))
         .flatMap(salt => {
             return Rx.Observable.create(observer => {
@@ -52,8 +52,16 @@ module.exports.findUser = (username) => {
     return Rx.Observable.forkJoin(userObservable, postsObservable);
 };
 
-module.exports.findAllUsers = (callback) => {
-    db.raw('SELECT id,name,datecreated,email,description FROM users').rows(callback)
+module.exports.findAllUsers = () => {
+    return Rx.Observable.create(observer => {
+        db.select(['id', 'name', 'datecreated', 'email', 'description']).from('users').rows((err, rows) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(rows);
+            observer.onCompleted();
+        });
+    });
 }
 
 module.exports.authenticate = (id, uuid) => {
@@ -165,27 +173,42 @@ module.exports.logOffAllOtherSessions = (id, requestedSession) => {
 
 //POST METHODS
 
-module.exports.linkPosts = (userID, postID, callback) => {
-    user.findByIdAndUpdate(
-        userID,
-        {$push: {"posts": postID}},
-        callback
-    )
+/*module.exports.findUserPostsbyID = (id) => {
+    return Rx.Observable.create(observer => {
+        db.select('id').from('posts').where({'user_id': id}).rows((err, rows) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(rows);
+            observer.onCompleted();
+        });
+    });
+}*/
+
+module.exports.authorizedToDelete = (postID, id) => {
+    return Rx.Observable.create(observer => {
+        db.select('user_id').from('posts').where({'id': postID, 'user_id': id}).row((err, row) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
 }
 
-module.exports.findUserPostsbyID = (_id, callback) => {
-    user.findOne({_id}, {posts: 1}, callback)
-}
-
-module.exports.authorizedToDelete = (post, _id, callback) => {
-    user.findOne({_id, posts: post}, callback)
-}
-
-module.exports.removePost = (post, _id, callback) => {
+/*module.exports.removePost = (post, _id, callback) => {
     user.update({_id}, {$pull: {posts: post}}, callback)
-}
+}*/
 
-module.exports.delete = (_id, callback) => {
-    console.log(_id)
-    user.remove({_id}, callback)
+module.exports.delete = (id) => {
+    return Rx.Observable.create(observer => {
+        db.delete().from('users').where({id}).run(err => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext('');
+            observer.onCompleted();
+        });
+    });
 }

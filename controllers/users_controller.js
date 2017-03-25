@@ -115,9 +115,9 @@ module.exports.login = ({body: {username = null, password = null}}, res) => {
     }
 }
 
-module.exports.changeUser = ({body: {password = null}, user = null}, res) => {
+module.exports.changeUser = ({body: {password = null}, user: {id = -1}}, res) => {
     if (password !== null) {
-        user.changePassword(user.id, password.old, password.new, (err, res) => {
+        user.changePassword(id, password.old, password.new, (err, ok) => {
             if (err) {
                 return res.status(404).json({
                     error: true,

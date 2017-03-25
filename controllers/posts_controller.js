@@ -36,7 +36,7 @@ module.exports.addPosts = ({body: {url = null, description = null, tags = null},
     }
 }
 
-module.exports.getPostByID = ({params: postID = null}, res) => {
+module.exports.getPostByID = ({params: {postID = null}}, res) => {
     const getPostObservable = post.getPostByID(postID);
     getPostObservable.subscribe(
         post => res.status(200).json({

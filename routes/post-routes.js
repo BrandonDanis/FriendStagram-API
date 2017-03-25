@@ -8,7 +8,7 @@ const auth = require("../auth.js")
     app.get('/', postsController.search)
     //app.get('/feed', postsController.getFollowingPosts)
     //app.get('/public', postsController.getPublicPosts)
-    app.get('/id/:postid', postsController.getPostByID)
+    app.get('/id/:postID', postsController.getPostByID)
 
     app.delete('/', auth.authenticate, auth.authorizedToDelete, postsController.delete)
 

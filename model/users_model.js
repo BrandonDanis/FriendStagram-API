@@ -129,15 +129,16 @@ module.exports.login = (username, password) => {
 }
 
 module.exports.changePassword = (id, password, newPassword, callback) => {
-    comparePasswordbyID(id, password, (err, ok) => {
+    module.exports.comparePasswordbyID(id, password, (err, ok) => {
         if (ok) {
-            bcrypt.hash(newPassword, saltRounds, null, (err, hashedPassword) => {
+            const salt = bcrypt.genSaltSync(saltRounds);
+            bcrypt.hash(newPassword, salt, null, (err, hashedPassword) => {
                 if (err) {
                     console.error(err);
                     callback(true, 'An error occurred. Please try again')
                 } else {
-                    db.update('users').set('password', hashedPassword).where({id}).returning('*').row((err, row) => {
-                        callback(err, row);
+                    db.update('users').set('password', hashedPassword).where({id}).run(err => {
+                        callback(err);
                     });
                 }
             })

@@ -15,7 +15,7 @@ module.exports.addPosts = (description, url, tags, owner) => {
 
 module.exports.getPostByID = (id) => {
     return Rx.Observable.create(observer => {
-        db.select().from('posts').where({id}).row((err, row) => {
+        db.select().from('posts').where(id).row((err, row) => {
             if (err)
                 observer.onError(err);
             else

@@ -37,12 +37,12 @@ module.exports.search = (queryParams) => {
 
     const getPosts = (observer, postIDs) => {
         const hasIDs = postIDs !== undefined;
-        const postIDQuery = hasIDs ? ' AND id IN $4' : '';
+        const postIDQuery = hasIDs ? ' AND P.id IN $4' : '';
         let params = [`%${description}%`, offset, limit];
         if (hasIDs)
             params.push(postIDs);
 
-        db.raw(`SELECT * FROM POSTS WHERE DESCRIPTION LIKE $1${postIDQuery} OFFSET $2 LIMIT $3`, params).rows((err, rows) => {
+        db.raw(`SELECT P.id, P.description, P.image_url, U.id as user_id, U.username FROM POSTS as P, USERS as U WHERE P.USER_ID = U.ID AND P.DESCRIPTION LIKE $1${postIDQuery} OFFSET $2 LIMIT $3`, params).rows((err, rows) => {
             if (err)
                 observer.onError(err);
             else

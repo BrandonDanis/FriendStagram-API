@@ -27,7 +27,7 @@ module.exports.getPostByID = (id) => {
 
 // TODO: add sort
 module.exports.search = (queryParams) => {
-    const {tags, offset = 0, limit = 15, sort, description} = queryParams;
+    const {tags, offset = 0, limit = 15, sort, description = ""} = queryParams;
 
     let findParams = {};
     if(tags)

@@ -40,7 +40,7 @@ module.exports.findUser = (username) => {
         });
     });
     const postsObservable = Rx.Observable.create((observer => {
-        db.raw('SELECT * FROM posts WHERE user_id = (SELECT id FROM users WHERE username  = $1);', [username]).rows((err, rows) => {
+        db.raw('SELECT * FROM posts WHERE user_id = (SELECT id FROM users WHERE username  = $1) ORDER BY id DESC;', [username]).rows((err, rows) => {
             if (err)
                 observer.onError(err);
             else

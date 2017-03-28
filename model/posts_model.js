@@ -42,7 +42,7 @@ module.exports.search = (queryParams) => {
         if (hasIDs)
             params.push(postIDs);
 
-        db.raw(`SELECT P.id, P.description, P.image_url, U.id as user_id, U.username FROM POSTS as P, USERS as U WHERE P.USER_ID = U.ID AND P.DESCRIPTION LIKE $1${postIDQuery} OFFSET $2 LIMIT $3`, params).rows((err, rows) => {
+        db.raw(`SELECT P.id, P.description, P.image_url, U.id as user_id, U.username FROM POSTS as P, USERS as U WHERE P.USER_ID = U.ID AND P.DESCRIPTION LIKE $1${postIDQuery} ORDER BY P.id DESC OFFSET $2 LIMIT $3`, params).rows((err, rows) => {
             if (err)
                 observer.onError(err);
             else

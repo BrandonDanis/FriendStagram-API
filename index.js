@@ -5,7 +5,10 @@ const bodyParser = require('body-parser')
 const logger = require('morgan')
 
 app.use(bodyParser.json())
-app.use(logger('dev'))
+
+if(process.env.NODE_ENV != 'test'){
+    app.use(logger('dev'))
+}
 
 app.get('/ping', (req, res) => {
     res.json({
@@ -16,3 +19,6 @@ app.use('/users', require('./routes/user-routes'))
 app.use('/posts', require('./routes/post-routes'))
 
 app.listen(process.env.PORT || 8080)
+
+// For testing
+module.exports = app;

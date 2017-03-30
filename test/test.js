@@ -1,14 +1,21 @@
-const assert = require('assert')
-const request = require('request')
-const URL = `http://127.0.0.1:${process.env.PORT || 8080}`
+process.env.NODE_ENV = 'test';
 
-describe('Array', function() {
-    describe('#ping', () => {
-        it('should return pong always', (done) => {
-            request(`${URL}/ping`, (err, res, body) => {
-                assert.equal('pong', JSON.parse(body).message)
+let chai = require('chai');
+let chaiHttp = require('chai-http');
+let server = require('../index');
+let should = chai.should();
+
+chai.use(chaiHttp);
+
+describe("Heartbeat", () => {
+
+    it("Checking if server is alive", (done) => {
+        chai.request(server)
+            .get('/ping')
+            .end((err, res) => {
+                res.should.have.status(200)
                 done()
             })
-        })
     })
-});
+
+})

@@ -16,5 +16,5 @@
 --   PRIMARY KEY (id)
 -- );
 
-INSERT INTO users (name, username, password, email) VALUES ('Brandon', 'brandon', 'brandon', 'bdanis@bdanis.com');
+INSERT INTO users VALUES ('Brandon', 'brandon', 'brandon', 'bdanis@bdanis.com');
 INSERT INTO users (name, username, password, email) VALUES ('test', 'test', 'test', 'test@test.com');

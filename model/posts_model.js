@@ -1,10 +1,5 @@
 const config = require('../config')
-
-let env = process.env.NODE_ENV || 'development';
-console.log(process.env.NODE_ENV);
-console.log(config[env]);
-
-const db = require('pg-bricks').configure(process.env.DB_URL);
+const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
 const Rx = require('rx');
 
 module.exports.addPosts = (description, url, tags, owner) => {

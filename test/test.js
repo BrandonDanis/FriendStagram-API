@@ -22,9 +22,11 @@ describe("Heartbeat", () => {
 describe("Users", () => {
 
     beforeEach((done) => {
-        db.raw("DELETE FROM POSTS").rows((err,rows) => {
-            db.raw("DELETE FROM USERS").rows((err,rows) => {
-                done()
+        db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
+            db.raw("DELETE FROM POSTS").rows((err,rows) => {
+                db.raw("DELETE FROM USERS").rows((err,rows) => {
+                    done()
+                })
             })
         })
     })
@@ -41,6 +43,7 @@ describe("Users", () => {
             .post("/users/")
             .send(user)
             .end((err,res) => {
+                console.log(res["error"]);
                 res.should.have.status(201)
                 res.body.should.be.a('object')
                 res.body.should.have.property('error')
@@ -124,28 +127,131 @@ describe("Users", () => {
         })
     })
 
-})
+    it("POST /users/login | Should login user", (done) => {
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
 
-// "name": "brando",
-//     "username": "brando",
-//     "datecreated": "2017-03-25T16:03:09.482Z",
-//     "description": null,
-//     "profile_picture_url": null,
-//     "profile_background_url": null,
-//     "posts": [
+        chai.request(server)
+            .post("/users/")
+            .send(user)
+            .end((err,res) => {
+                res.should.have.status(201)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(false)
+
+                chai.request(server)
+                    .post("/users/login")
+                    .send(user)
+                    .end((err,res) => {
+                        res.should.have.status(200)
+                        res.body.should.be.a('object')
+                        res.body.should.have.property('error')
+                        res.body.should.have.property('error').eql(false)
+                        res.body.should.have.property('data')
+                        res.body.data.should.be.a("string")
+                        done()
+                    })
+            })
+    })
+
+})
 
 describe("Posts", () => {
 
+    var user_header = ""
+
     beforeEach((done) => {
-        db.raw("DELETE FROM POSTS").rows((err,rows) => {
-            db.raw("DELETE FROM USERS").rows((err,rows) => {
-                done()
+        db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
+            db.raw("DELETE FROM POSTS").rows((err,rows) => {
+                db.raw("DELETE FROM USERS").rows((err,rows) => {
+                    done()
+                })
             })
         })
     })
 
-    it("GET /posts", (done) => {
-        done()
+    it("GET /posts | Should return empty list of posts", (done) => {
+        chai.request(server)
+            .get("/posts")
+            .end((err,res) => {
+                res.should.have.status(200)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(false)
+                res.body.should.have.property('data')
+                res.body.data.should.be.a("array")
+                res.body.data.length.should.be.eql(0)
+                done()
+            })
+    })
+
+    it("POST /posts | Should submit a new post", (done) => {
+
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let post = {
+            "url": "myurl.png",
+            "description": "Test Desc",
+            "tags": "Tags"
+        }
+
+        chai.request(server)
+            .post("/users/")
+            .send(user)
+            .end((err,res) => {
+                res.should.have.status(201)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(false)
+
+                chai.request(server)
+                    .post("/users/login")
+                    .send(user)
+                    .end((err,res) => {
+                        res.should.have.status(200)
+                        res.body.should.be.a('object')
+                        res.body.should.have.property('error')
+                        res.body.should.have.property('error').eql(false)
+                        res.body.should.have.property('data')
+
+                        user_header = res["body"]["data"]
+
+                        chai.request(server)
+                            .post("/posts")
+                            .set('token', user_header)
+                            .send(post)
+                            .end((err,res) => {
+                                res.should.have.status(200)
+                                res.body.should.be.a('object')
+                                res.body.should.have.property('error')
+                                res.body.should.have.property('error').eql(false)
+                                
+                                chai.request(server)
+                                    .get("/posts")
+                                    .end((err,res) => {
+                                        res.should.have.status(200)
+                                        res.body.should.be.a('object')
+                                        res.body.should.have.property('error')
+                                        res.body.should.have.property('error').eql(false)
+                                        res.body.should.have.property('data')
+                                        res.body.data.should.be.a("array")
+                                        res.body.data.length.should.be.eql(1)
+                                        done()
+                                    })
+
+                            })
+                    })
+            })
     })
 
 })

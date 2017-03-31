@@ -49,6 +49,54 @@ describe("Users", () => {
             })
     })
 
+    it("POST /users | Should not create a new user with already existing username", (done) => {
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        db.raw(`INSERT INTO users (name, username, password, email) VALUES ('${user["name"]}', '${user["username"]}', '${user["password"]}', '${user["email"]}')`).rows((err,rows) => {
+            should.equal(err, null)
+            rows.length.should.be.eql(0)
+            chai.request(server)
+                .post("/users/")
+                .send(user)
+                .end((err,res) => {
+                    res.should.have.status(500)
+                    res.body.should.be.a('object')
+                    res.body.should.have.property('error')
+                    res.body.should.have.property('error').eql(true)
+                    done()
+                })
+        })
+    })
+
+    it("POST /users | Should not create a new user with already existing email", (done) => {
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        db.raw(`INSERT INTO users (name, username, password, email) VALUES ('${user["name"]}', '${user["username"]+"1"}', '${user["password"]}', '${user["email"]}')`).rows((err,rows) => {
+            should.equal(err, null)
+            rows.length.should.be.eql(0)
+            chai.request(server)
+                .post("/users/")
+                .send(user)
+                .end((err,res) => {
+                    res.should.have.status(500)
+                    res.body.should.be.a('object')
+                    res.body.should.have.property('error')
+                    res.body.should.have.property('error').eql(true)
+                    done()
+                })
+        })
+    })
+
     it("GET /users/:username | Should give us the users info", (done) => {
         let username = "brando"
         db.raw(`INSERT INTO users (name, username, password, email) VALUES ('${username}', '${username}', '${username}', '${username}@${username}.com')`).rows((err,rows) => {

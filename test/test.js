@@ -39,17 +39,9 @@ describe("Users", () => {
             "name": "Brandon Danis"
         }
 
-        chai.request(server)
-            .post("/users/")
-            .send(user)
-            .end((err,res) => {
-                console.log(res["error"]);
-                res.should.have.status(201)
-                res.body.should.be.a('object')
-                res.body.should.have.property('error')
-                res.body.should.have.property('error').eql(false)
-                done()
-            })
+        AddUser(user, () => {
+            done()
+        })
     })
 
     it("POST /users | Should not create a new user with already existing username", (done) => {
@@ -205,53 +197,60 @@ describe("Posts", () => {
             "tags": "Tags"
         }
 
-        chai.request(server)
-            .post("/users/")
-            .send(user)
-            .end((err,res) => {
-                res.should.have.status(201)
-                res.body.should.be.a('object')
-                res.body.should.have.property('error')
-                res.body.should.have.property('error').eql(false)
+        AddUser(user, () => {
+            chai.request(server)
+                .post("/users/login")
+                .send(user)
+                .end((err,res) => {
+                    res.should.have.status(200)
+                    res.body.should.be.a('object')
+                    res.body.should.have.property('error')
+                    res.body.should.have.property('error').eql(false)
+                    res.body.should.have.property('data')
 
-                chai.request(server)
-                    .post("/users/login")
-                    .send(user)
-                    .end((err,res) => {
-                        res.should.have.status(200)
-                        res.body.should.be.a('object')
-                        res.body.should.have.property('error')
-                        res.body.should.have.property('error').eql(false)
-                        res.body.should.have.property('data')
+                    user_header = res["body"]["data"]
 
-                        user_header = res["body"]["data"]
+                    chai.request(server)
+                        .post("/posts")
+                        .set('token', user_header)
+                        .send(post)
+                        .end((err,res) => {
+                            res.should.have.status(200)
+                            res.body.should.be.a('object')
+                            res.body.should.have.property('error')
+                            res.body.should.have.property('error').eql(false)
 
-                        chai.request(server)
-                            .post("/posts")
-                            .set('token', user_header)
-                            .send(post)
-                            .end((err,res) => {
-                                res.should.have.status(200)
-                                res.body.should.be.a('object')
-                                res.body.should.have.property('error')
-                                res.body.should.have.property('error').eql(false)
-                                
-                                chai.request(server)
-                                    .get("/posts")
-                                    .end((err,res) => {
-                                        res.should.have.status(200)
-                                        res.body.should.be.a('object')
-                                        res.body.should.have.property('error')
-                                        res.body.should.have.property('error').eql(false)
-                                        res.body.should.have.property('data')
-                                        res.body.data.should.be.a("array")
-                                        res.body.data.length.should.be.eql(1)
-                                        done()
-                                    })
+                            chai.request(server)
+                                .get("/posts")
+                                .end((err,res) => {
+                                    res.should.have.status(200)
+                                    res.body.should.be.a('object')
+                                    res.body.should.have.property('error')
+                                    res.body.should.have.property('error').eql(false)
+                                    res.body.should.have.property('data')
+                                    res.body.data.should.be.a("array")
+                                    res.body.data.length.should.be.eql(1)
+                                    done()
+                                })
 
-                            })
-                    })
-            })
+                        })
+                })
+        })
+
     })
 
 })
+
+
+AddUser = (user, callback) => {
+    chai.request(server)
+        .post("/users/")
+        .send(user)
+        .end((err,res) => {
+            res.should.have.status(201)
+            res.body.should.be.a('object')
+            res.body.should.have.property('error')
+            res.body.should.have.property('error').eql(false)
+            callback()
+        })
+}

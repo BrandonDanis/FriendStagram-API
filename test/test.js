@@ -52,19 +52,17 @@ describe("Users", () => {
             "name": "Brandon Danis"
         }
 
-        db.raw(`INSERT INTO users (name, username, password, email) VALUES ('${user["name"]}', '${user["username"]}', '${user["password"]}', '${user["email"]}')`).rows((err,rows) => {
-            should.equal(err, null)
-            rows.length.should.be.eql(0)
-            chai.request(server)
-                .post("/users/")
-                .send(user)
-                .end((err,res) => {
-                    res.should.have.status(500)
-                    res.body.should.be.a('object')
-                    res.body.should.have.property('error')
-                    res.body.should.have.property('error').eql(true)
-                    done()
-                })
+        let invalidUser = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando1@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user, () => {
+            AddInvalidUser(invalidUser, () => {
+                done()
+            })
         })
     })
 
@@ -76,19 +74,17 @@ describe("Users", () => {
             "name": "Brandon Danis"
         }
 
-        db.raw(`INSERT INTO users (name, username, password, email) VALUES ('${user["name"]}', '${user["username"]+"1"}', '${user["password"]}', '${user["email"]}')`).rows((err,rows) => {
-            should.equal(err, null)
-            rows.length.should.be.eql(0)
-            chai.request(server)
-                .post("/users/")
-                .send(user)
-                .end((err,res) => {
-                    res.should.have.status(500)
-                    res.body.should.be.a('object')
-                    res.body.should.have.property('error')
-                    res.body.should.have.property('error').eql(true)
-                    done()
-                })
+        let invalidUser = {
+            "username": "brando1",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user, () => {
+            AddInvalidUser(invalidUser, () => {
+                done()
+            })
         })
     })
 
@@ -251,6 +247,19 @@ AddUser = (user, callback) => {
             res.body.should.be.a('object')
             res.body.should.have.property('error')
             res.body.should.have.property('error').eql(false)
+            callback()
+        })
+}
+
+AddInvalidUser = (user, callback) => {
+    chai.request(server)
+        .post("/users/")
+        .send(user)
+        .end((err,res) => {
+            res.should.have.status(500)
+            res.body.should.be.a('object')
+            res.body.should.have.property('error')
+            res.body.should.have.property('error').eql(true)
             callback()
         })
 }

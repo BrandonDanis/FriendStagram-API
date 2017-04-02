@@ -190,36 +190,26 @@ describe("Posts", () => {
 
         AddUser(user, () => {
             LoginUser(user, (token) => {
-                chai.request(server)
-                    .post("/posts")
-                    .set('token', token)
-                    .send(post)
-                    .end((err,res) => {
-                        res.should.have.status(200)
-                        res.body.should.be.a('object')
-                        res.body.should.have.property('error')
-                        res.body.should.have.property('error').eql(false)
-
-                        chai.request(server)
-                            .get("/posts")
-                            .end((err,res) => {
-                                res.should.have.status(200)
-                                res.body.should.be.a('object')
-                                res.body.should.have.property('error')
-                                res.body.should.have.property('error').eql(false)
-                                res.body.should.have.property('data')
-                                res.body.data.should.be.a("array")
-                                res.body.data.length.should.be.eql(1)
-                                res.body.data[0].should.have.property('description')
-                                res.body.data[0].should.have.property('description').eql(post.description)
-                                res.body.data[0].should.have.property('image_url')
-                                res.body.data[0].should.have.property('image_url').eql(post.url)
-                                res.body.data[0].should.have.property('username')
-                                res.body.data[0].should.have.property('username').eql(user.username)
-                                done()
-                            })
-
-                    })
+                SubmitPost(post, token, () => {
+                    chai.request(server)
+                        .get("/posts")
+                        .end((err,res) => {
+                            res.should.have.status(200)
+                            res.body.should.be.a('object')
+                            res.body.should.have.property('error')
+                            res.body.should.have.property('error').eql(false)
+                            res.body.should.have.property('data')
+                            res.body.data.should.be.a("array")
+                            res.body.data.length.should.be.eql(1)
+                            res.body.data[0].should.have.property('description')
+                            res.body.data[0].should.have.property('description').eql(post.description)
+                            res.body.data[0].should.have.property('image_url')
+                            res.body.data[0].should.have.property('image_url').eql(post.url)
+                            res.body.data[0].should.have.property('username')
+                            res.body.data[0].should.have.property('username').eql(user.username)
+                            done()
+                        })
+                })
             })
 
         })
@@ -266,5 +256,19 @@ LoginUser = (user, callback) => {
             res.body.should.have.property('error').eql(false)
             res.body.should.have.property('data')
             callback(res["body"]["data"])
+        })
+}
+
+SubmitPost = (post, token, callback) => {
+    chai.request(server)
+        .post("/posts")
+        .set('token', token)
+        .send(post)
+        .end((err,res) => {
+            res.should.have.status(200)
+            res.body.should.be.a('object')
+            res.body.should.have.property('error')
+            res.body.should.have.property('error').eql(false)
+            callback()
         })
 }

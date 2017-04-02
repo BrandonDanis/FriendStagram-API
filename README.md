@@ -22,3 +22,9 @@ GET /posts/id/:id //Return info about post with specific id
 POST /posts //Upload a post. Authenticated.
 DELETE /posts //Ability to delete a post. Authenticated.
 ```
+
+## Features
+- User sessions with JWT
+- Password hashing using BCrypt
+- Scalable
+- Image hosting using Cloudinary

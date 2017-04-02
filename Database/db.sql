@@ -15,6 +15,21 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 );
 
+DROP TABLE IF EXISTS users_sessions;
+CREATE TABLE users_sessions (
+    id UUID NOT NULL,
+    user_id INTEGER NOT NULL,
+    PRIMARY KEY (id, user_id),
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+DROP TABLE IF EXISTS tags;
+CREATE TABLE tags (
+  id   SERIAL,
+  name VARCHAR,
+  PRIMARY KEY (id)
+);
+
 DROP TABLE IF EXISTS posts;
 CREATE TABLE posts (
   id          SERIAL,
@@ -37,13 +52,6 @@ CREATE TABLE post_likes (
   PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS tags;
-CREATE TABLE tags (
-  id   SERIAL,
-  name VARCHAR,
-  PRIMARY KEY (id)
-);
-
 DROP TABLE IF EXISTS post_tags;
 CREATE TABLE post_tags (
   id      SERIAL,
@@ -52,12 +60,4 @@ CREATE TABLE post_tags (
   FOREIGN KEY (post_id) REFERENCES posts (id),
   FOREIGN KEY (tag_id) REFERENCES tags (id),
   PRIMARY KEY (id)
-);
-
-DROP TABLE IF EXISTS users_sessions;
-CREATE TABLE users_sessions (
-    id UUID NOT NULL,
-    user_id INTEGER NOT NULL,
-    PRIMARY KEY (id, user_id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
 );

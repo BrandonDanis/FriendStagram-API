@@ -4,4 +4,4 @@ node_js:
 services:
   - postgresql
 before_script:
-  - psql friendstagram-test;
+  - createdb friendstagram-test;

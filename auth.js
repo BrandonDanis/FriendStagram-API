@@ -7,7 +7,6 @@ module.exports.authenticate = (req, res, next) => {
     const token = req.get('token');
     try {
         const {id, uuid} = jwt.decode(token, cfg.jwtSecret);
-        console.log(id, uuid);
         const authObservable = user.authenticate(id, uuid);
         authObservable.subscribe(
             () => {
@@ -72,4 +71,3 @@ module.exports.authorizedToDelete = (req, res, next) => {
         next()
     })*/
 };
-

@@ -216,8 +216,45 @@ describe("Posts", () => {
 
     })
 
-})
+    it("GET /posts/id/:id | Should get a post by id", (done) => {
 
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let post = {
+            "url": "myurl.png",
+            "description": "Test Desc",
+            "tags": "Tags"
+        }
+
+        AddUser(user, () => {
+            LoginUser(user, (token) => {
+                SubmitPost(post, token, (post_info) => {
+                    chai.request(server)
+                        .get(`/posts/id/${post_info.id}`)
+                        .end((err,res) => {
+                            res.should.have.status(200)
+                            res.body.should.be.a('object')
+                            res.body.should.have.property('error')
+                            res.body.should.have.property('error').eql(false)
+                            res.body.should.have.property('data')
+                            res.body.data.should.have.property('description')
+                            res.body.data.should.have.property('description').eql(post.description)
+                            res.body.data.should.have.property('image_url')
+                            res.body.data.should.have.property('image_url').eql(post.url)
+                            done()
+                        })
+                })
+            })
+        })
+
+    })
+
+})
 
 AddUser = (user, callback) => {
     chai.request(server)
@@ -269,6 +306,6 @@ SubmitPost = (post, token, callback) => {
             res.body.should.be.a('object')
             res.body.should.have.property('error')
             res.body.should.have.property('error').eql(false)
-            callback()
+            callback(res["body"]["data"])
         })
 }

@@ -28,3 +28,19 @@ DELETE /posts //Ability to delete a post. Authenticated.
 - Password hashing using BCrypt
 - Scalable
 - Image hosting using Cloudinary
+
+## Setup
+
+#### Environment Variables
+* DB_URL = your database url
+* TEST_DB_URL = your test database url
+* SECRET_KEY = any string of your choice
+
+#### Instructions
+* Clone repo
+* Instal latest version of Node and run 'npm install' to install all npm modules
+* Install PostgreSQL, create a database and use the schema provided in the repo (database/db.sql)
+* * You can also setup a test database with the same schema but a different database name
+* Populate the environment variables needed
+* Run 'npm test' to ensure you have correctly setup your Environment
+* Start the api by running 'npm start'

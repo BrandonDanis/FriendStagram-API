@@ -43,7 +43,6 @@ module.exports.register = ({body: {username = null, password = null, email = nul
                     data: null
                 }),
             err => {
-                console.error(err);
                 res.status(500).json({
                     error: true,
                     data: null
@@ -93,7 +92,6 @@ module.exports.login = ({body: {username = null, password = null}}, res) => {
 
         observable.subscribe(
             next => {
-                console.log(next);
                 const payload = {
                     id: next.user_id,
                     timestamp: new Date(),

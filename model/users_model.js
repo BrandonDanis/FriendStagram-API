@@ -111,8 +111,6 @@ module.exports.login = (username, password) => {
         return Rx.Observable.create(observer => {
             bcrypt.compare(password, hashedPassword, (err, res) => {
                 if (err || !res) {
-                    console.error(err);
-                    console.log(res);
                     observer.onError('An error occurred. Please log in again!');
                     observer.onCompleted();
                 } else {

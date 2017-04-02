@@ -210,6 +210,12 @@ describe("Posts", () => {
                                 res.body.should.have.property('data')
                                 res.body.data.should.be.a("array")
                                 res.body.data.length.should.be.eql(1)
+                                res.body.data[0].should.have.property('description')
+                                res.body.data[0].should.have.property('description').eql(post.description)
+                                res.body.data[0].should.have.property('image_url')
+                                res.body.data[0].should.have.property('image_url').eql(post.url)
+                                res.body.data[0].should.have.property('username')
+                                res.body.data[0].should.have.property('username').eql(user.username)
                                 done()
                             })
 

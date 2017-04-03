@@ -254,6 +254,43 @@ describe("Posts", () => {
 
     })
 
+    it("DELETE /posts | Should delete newly added post", (done) => {
+
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let post = {
+            "url": "myurl.png",
+            "description": "Test Desc",
+            "tags": "Tags"
+        }
+
+        AddUser(user, () => {
+            LoginUser(user, (token) => {
+                SubmitPost(post, token, (post_info) => {
+                    chai.request(server)
+                        .delete("/posts/")
+                        .set('token', token)
+                        .send({post: post_info["id"]})
+                        .end((err,res) => {
+                            res.should.have.status(200)
+                            res.body.should.be.a('object')
+                            res.body.should.have.property('error')
+                            res.body.should.have.property('error').eql(false)
+                            res.body.should.have.property('data')
+                            res.body.should.have.property('data').eql(null)
+                            done()
+                        })
+                })
+            })
+        })
+
+    })
+
 })
 
 AddUser = (user, callback) => {

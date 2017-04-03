@@ -44,6 +44,44 @@ describe("Users", () => {
         })
     })
 
+    it("POST /users | Should not create a user with no username", (done) => {
+        let user = {
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        chai.request(server)
+            .post("/users/")
+            .send(user)
+            .end((err,res) => {
+                res.should.have.status(401)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(true)
+                done()
+            })
+    })
+
+    it("POST /users | Should not create a user with no password", (done) => {
+        let user = {
+            "username": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        chai.request(server)
+            .post("/users/")
+            .send(user)
+            .end((err,res) => {
+                res.should.have.status(401)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(true)
+                done()
+            })
+    })
+
     it("POST /users | Should not create a new user with already existing username", (done) => {
         let user = {
             "username": "brando",
@@ -210,6 +248,41 @@ describe("Posts", () => {
                             done()
                         })
                 })
+            })
+
+        })
+
+    })
+
+    it("POST /posts | Should not submit a new post when unauthorized", (done) => {
+
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let post = {
+            "url": "myurl.png",
+            "description": "Test Desc",
+            "tags": "Tags"
+        }
+
+        AddUser(user, () => {
+            LoginUser(user, (token) => {
+                chai.request(server)
+                    .post("/posts")
+                    .send(post)
+                    .end((err,res) => {
+                        res.should.have.status(401)
+                        res.body.should.be.a('object')
+                        res.body.should.have.property('error')
+                        res.body.should.have.property('error').eql(true)
+                        res.body.should.have.property('data')
+                        res.body.should.have.property('data').eql("bad token")
+                        done()
+                    })
             })
 
         })

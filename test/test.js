@@ -291,6 +291,42 @@ describe("Posts", () => {
 
     })
 
+    it("DELETE /posts | Should not delete post when header is not set", (done) => {
+
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let post = {
+            "url": "myurl.png",
+            "description": "Test Desc",
+            "tags": "Tags"
+        }
+
+        AddUser(user, () => {
+            LoginUser(user, (token) => {
+                SubmitPost(post, token, (post_info) => {
+                    chai.request(server)
+                        .delete("/posts/")
+                        .send({post: post_info["id"]})
+                        .end((err,res) => {
+                            res.should.have.status(401)
+                            res.body.should.be.a('object')
+                            res.body.should.have.property('error')
+                            res.body.should.have.property('error').eql(true)
+                            res.body.should.have.property('data')
+                            res.body.should.have.property('data').eql("bad token")
+                            done()
+                        })
+                })
+            })
+        })
+
+    })
+
 })
 
 AddUser = (user, callback) => {

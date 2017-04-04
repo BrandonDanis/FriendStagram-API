@@ -17,10 +17,19 @@ CREATE TABLE users (
 
 DROP TABLE IF EXISTS users_sessions;
 CREATE TABLE users_sessions (
-    id UUID NOT NULL,
-    user_id INTEGER NOT NULL,
+    id UUID     NOT NULL,
+    user_id     INTEGER NOT NULL,
     PRIMARY KEY (id, user_id),
     FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+DROP TABLE IF EXISTS users_follows;
+CREATE TABLE users_follows (
+    follower    INTEGER NOT NULL,
+    following   INTEGER NOT NULL,
+    PRIMARY KEY (follower, following),
+    FOREIGN KEY (follower) REFERENCES users (id),
+    FOREIGN KEY (following) REFERENCES users (id)
 );
 
 DROP TABLE IF EXISTS tags;

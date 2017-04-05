@@ -20,3 +20,14 @@ module.exports.followUser = (followerId, followeeId, callback) => {
 		}
 	})
 }
+
+module.exports.unfollowUser = (followerId, followeeId, callback) => {
+    db.raw("delete from users_follows where follower = $1 and following = $2;", [followerId, followeeId]).rows((err,rows) => {
+		if(err){
+			console.log(err);
+			callback(500, "Error un-following")
+		}else{
+			callback(200, "Unfollowed")
+		}
+	})
+}

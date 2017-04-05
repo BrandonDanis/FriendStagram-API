@@ -7,7 +7,7 @@ module.exports.followUser = (followerId, followeeId, callback) => {
     db.raw("SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = $2", [followerId, followeeId]).rows((err,rows) => {
 		console.log(rows.length == 0);
 		if(rows.length == 0){
-			db.raw("INSERT INTO users_follows VALUES ($1,$2)", [followerId, followeeId]).row((err,row) => {
+			db.raw("INSERT INTO users_follows VALUES ($1,$2)", [followerId, followeeId]).rows((err,rows) => {
 				if(err){
 					console.log(err);
 					callback(500, "Error while attempting to follow")

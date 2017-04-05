@@ -39,8 +39,8 @@ module.exports.unfollowUser = ({body: {userIdToFollow = null}, user = null}, res
 	}
 }
 
-module.exports.getAllFollowing = ({user = null}, res) => {
-	follow.getAllFollowing(user.id, (err,rows) => {
+module.exports.getAllFollowing = ({params: {userId = null}}, res) => {
+	follow.getAllFollowing(userId, (err,rows) => {
 		if(err){
 			console.log(err);
 			res.status(500).json({
@@ -56,8 +56,8 @@ module.exports.getAllFollowing = ({user = null}, res) => {
 	})
 }
 
-module.exports.getAllFollowers = ({user = null}, res) => {
-	follow.getAllFollowers(user.id, (err,rows) => {
+module.exports.getAllFollowers = ({params: {userId = null}}, res) => {
+	follow.getAllFollowers(userId, (err,rows) => {
 		if(err){
 			console.log(err);
 			res.status(500).json({

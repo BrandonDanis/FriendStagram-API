@@ -45,12 +45,12 @@ module.exports.getAllFollowing = ({params: {userId = null}}, res) => {
 			console.log(err);
 			res.status(500).json({
 				error: true,
-				status: err
+				data: []
 			})
 		}else{
 			res.status(200).json({
 				error: false,
-				status: rows
+				data: rows
 			})
 		}
 	})
@@ -62,12 +62,12 @@ module.exports.getAllFollowers = ({params: {userId = null}}, res) => {
 			console.log(err);
 			res.status(500).json({
 				error: true,
-				status: err
+				data: []
 			})
 		}else{
 			res.status(200).json({
 				error: false,
-				status: rows
+				data: rows
 			})
 		}
 	})

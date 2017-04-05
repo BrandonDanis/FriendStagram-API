@@ -402,6 +402,35 @@ describe("Posts", () => {
 
 })
 
+describe("Follow", () => {
+
+    beforeEach((done) => {
+        db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
+            db.raw("DELETE FROM USERS_FOLLOWS").rows((err,rows) => {
+                db.raw("DELETE FROM USERS").rows((err,rows) => {
+                    done()
+                })
+            })
+        })
+    })
+
+    it("GET /follow/getAllFollowing/:userId", (done) => {
+        chai.request(server)
+            .get("/follow/getAllFollowing/1")
+            .end((err,res) => {
+                res.should.have.status(200)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(false)
+                res.body.should.have.property('data')
+                res.body.data.should.be.a("array")
+                res.body.data.length.should.be.eql(0)
+                done()
+            })
+    })
+
+})
+
 AddUser = (user, callback) => {
     chai.request(server)
         .post("/users/")

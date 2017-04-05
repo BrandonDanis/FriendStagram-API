@@ -37,3 +37,7 @@ module.exports.unfollowUser = (followerId, followeeId, callback) => {
 module.exports.getAllFollowing = (userId, callback) => {
 	db.raw("SELECT id,name,username,profile_picture_url FROM USERS_FOLLOWS, USERS WHERE FOLLOWER = $1 AND USERS.ID = USERS_FOLLOWS.following", [userId]).rows(callback)
 }
+
+module.exports.getAllFollowers = (userId, callback) => {
+	db.raw("SELECT id,name,username,profile_picture_url FROM USERS_FOLLOWS, USERS WHERE FOLLOWING = $1 AND USERS.ID = USERS_FOLLOWS.follower", [userId]).rows(callback)
+}

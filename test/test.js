@@ -470,7 +470,7 @@ describe("Follow", () => {
         })
     })
 
-    it("POST /follow | User should now be able to follow a non-existant user", (done) => {
+    it("POST /follow | User should not be able to follow a non-existant user", (done) => {
         let user1 = {
             "username": "brando",
             "password": "brando",
@@ -495,6 +495,46 @@ describe("Follow", () => {
                         res.body.should.have.property('status').eql('User doesn\'t exist')
                         done()
                     })
+            })
+        })
+    })
+
+    it("POST /follow | User should be told if already following another user", (done) => {
+        let user1 = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let user2 = {
+            "username": "brando2",
+            "password": "brando2",
+            "email": "brando2@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user1, () => {
+            AddUser(user2, (user2_id) => {
+                LoginUser(user1, (token) => {
+                    FollowUser(token, user2_id, () => {
+                        chai.request(server)
+                            .post("/follow")
+                            .set('token', token)
+                            .send({
+                                "userIdToFollow": user2_id
+                            })
+                            .end((err,res) => {
+                                res.should.have.status(200)
+                                res.body.should.be.a('object')
+                                res.body.should.have.property('error')
+                                res.body.should.have.property('error').eql(false)
+                                res.body.should.have.property('status')
+                                res.body.should.have.property('status').eql('Already following')
+                                done()
+                            })
+                    })
+                })
             })
         })
     })
@@ -524,6 +564,24 @@ AddInvalidUser = (user, callback) => {
             res.body.should.be.a('object')
             res.body.should.have.property('error')
             res.body.should.have.property('error').eql(true)
+            callback()
+        })
+}
+
+FollowUser = (token, userIdToFollow, callback) => {
+    chai.request(server)
+        .post("/follow")
+        .set('token', token)
+        .send({
+            "userIdToFollow": userIdToFollow
+        })
+        .end((err,res) => {
+            res.should.have.status(200)
+            res.body.should.be.a('object')
+            res.body.should.have.property('error')
+            res.body.should.have.property('error').eql(false)
+            res.body.should.have.property('status')
+            res.body.should.have.property('status').eql('Now Following')
             callback()
         })
 }

@@ -18,7 +18,7 @@ module.exports.followUser = (followerId, followeeId, callback) => {
 				}
 			})
 		}else{
-			callback(302, "Already following")
+			callback(200, "Already following")
 		}
 	})
 }

@@ -405,16 +405,18 @@ describe("Posts", () => {
 describe("Follow", () => {
 
     beforeEach((done) => {
-        db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
-            db.raw("DELETE FROM USERS_FOLLOWS").rows((err,rows) => {
-                db.raw("DELETE FROM USERS").rows((err,rows) => {
-                    done()
+        db.raw("DELETE FROM POSTS").rows((err,rows) => {
+            db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
+                db.raw("DELETE FROM USERS_FOLLOWS").rows((err,rows) => {
+                    db.raw("DELETE FROM USERS").rows((err,rows) => {
+                        done()
+                    })
                 })
             })
         })
     })
 
-    it("GET /follow/getAllFollowing/:userId", (done) => {
+    it("GET /follow/getAllFollowing/:userId | Should return empty list of following", (done) => {
         chai.request(server)
             .get("/follow/getAllFollowing/1")
             .end((err,res) => {
@@ -429,6 +431,59 @@ describe("Follow", () => {
             })
     })
 
+    it("GET /follow/getAllFollowers/:userId | Should return empty list of followers", (done) => {
+        chai.request(server)
+            .get("/follow/getAllFollowing/1")
+            .end((err,res) => {
+                res.should.have.status(200)
+                res.body.should.be.a('object')
+                res.body.should.have.property('error')
+                res.body.should.have.property('error').eql(false)
+                res.body.should.have.property('data')
+                res.body.data.should.be.a("array")
+                res.body.data.length.should.be.eql(0)
+                done()
+            })
+    })
+
+    it("GET /follow | User1 should be following User2", (done) => {
+        let user1 = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let user2 = {
+            "username": "brando2",
+            "password": "brando2",
+            "email": "brando2@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user1, () => {
+            AddUser(user2, (user2_id) => {
+                LoginUser(user1, (token) => {
+                    chai.request(server)
+                        .post("/follow")
+                        .set('token', token)
+                        .send({
+                            "userIdToFollow": user2_id
+                        })
+                        .end((err,res) => {
+                            res.should.have.status(200)
+                            res.body.should.be.a('object')
+                            res.body.should.have.property('error')
+                            res.body.should.have.property('error').eql(false)
+                            res.body.should.have.property('status')
+                            res.body.should.have.property('status').eql('Now Following')
+                            done()
+                        })
+                })
+            })
+        })
+    })
+
 })
 
 AddUser = (user, callback) => {
@@ -440,7 +495,8 @@ AddUser = (user, callback) => {
             res.body.should.be.a('object')
             res.body.should.have.property('error')
             res.body.should.have.property('error').eql(false)
-            callback()
+            res.body.should.have.property('data')
+            callback(res["body"]["data"])
         })
 }
 

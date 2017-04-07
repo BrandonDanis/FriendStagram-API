@@ -37,10 +37,10 @@ module.exports.register = ({body: {username = null, password = null, email = nul
     }
     else {
         user.register(username, password, email, name).subscribe(
-            () =>
+            (id) =>
                 res.status(201).json({
                     error: false,
-                    data: null
+                    data: id
                 }),
             err => {
                 res.status(500).json({

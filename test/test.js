@@ -22,12 +22,8 @@ describe("Heartbeat", () => {
 describe("Users", () => {
 
     beforeEach((done) => {
-        db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
-            db.raw("DELETE FROM POSTS").rows((err,rows) => {
-                db.raw("DELETE FROM USERS").rows((err,rows) => {
-                    done()
-                })
-            })
+        EmptyDatabase(() => {
+            done()
         })
     })
 
@@ -187,12 +183,8 @@ describe("Users", () => {
 describe("Posts", () => {
 
     beforeEach((done) => {
-        db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
-            db.raw("DELETE FROM POSTS").rows((err,rows) => {
-                db.raw("DELETE FROM USERS").rows((err,rows) => {
-                    done()
-                })
-            })
+        EmptyDatabase(() => {
+            done()
         })
     })
 
@@ -405,14 +397,8 @@ describe("Posts", () => {
 describe("Follow", () => {
 
     beforeEach((done) => {
-        db.raw("DELETE FROM POSTS").rows((err,rows) => {
-            db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
-                db.raw("DELETE FROM USERS_FOLLOWS").rows((err,rows) => {
-                    db.raw("DELETE FROM USERS").rows((err,rows) => {
-                        done()
-                    })
-                })
-            })
+        EmptyDatabase(() => {
+            done()
         })
     })
 
@@ -446,7 +432,7 @@ describe("Follow", () => {
             })
     })
 
-    it("GET /follow | User1 should be following User2", (done) => {
+    it("POST /follow | User1 should be following User2", (done) => {
         let user1 = {
             "username": "brando",
             "password": "brando",
@@ -480,6 +466,35 @@ describe("Follow", () => {
                             done()
                         })
                 })
+            })
+        })
+    })
+
+    it("POST /follow | User should now be able to follow a non-existant user", (done) => {
+        let user1 = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user1, () => {
+            LoginUser(user1, (token) => {
+                chai.request(server)
+                    .post("/follow")
+                    .set('token', token)
+                    .send({
+                        "userIdToFollow": -1
+                    })
+                    .end((err,res) => {
+                        res.should.have.status(401)
+                        res.body.should.be.a('object')
+                        res.body.should.have.property('error')
+                        res.body.should.have.property('error').eql(true)
+                        res.body.should.have.property('status')
+                        res.body.should.have.property('status').eql('User doesn\'t exist')
+                        done()
+                    })
             })
         })
     })
@@ -539,4 +554,16 @@ SubmitPost = (post, token, callback) => {
             res.body.should.have.property('error').eql(false)
             callback(res["body"]["data"])
         })
+}
+
+EmptyDatabase = (callback) => {
+    db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
+        db.raw("DELETE FROM USERS_FOLLOWS").rows((err,rows) => {
+            db.raw("DELETE FROM POSTS").rows((err,rows) => {
+                db.raw("DELETE FROM USERS").rows((err,rows) => {
+                    callback()
+                })
+            })
+        })
+    })
 }

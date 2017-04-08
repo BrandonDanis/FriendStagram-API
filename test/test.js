@@ -539,6 +539,46 @@ describe("Follow", () => {
         })
     })
 
+    it("DELETE /follow | User should be able to unfollow a user", (done) => {
+        let user1 = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let user2 = {
+            "username": "brando2",
+            "password": "brando2",
+            "email": "brando2@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user1, () => {
+            AddUser(user2, (user2_id) => {
+                LoginUser(user1, (token) => {
+                    FollowUser(token, user2_id, () => {
+                        chai.request(server)
+                            .delete("/follow")
+                            .set('token', token)
+                            .send({
+                                "userIdToFollow": user2_id
+                            })
+                            .end((err,res) => {
+                                res.should.have.status(200)
+                                res.body.should.be.a('object')
+                                res.body.should.have.property('error')
+                                res.body.should.have.property('error').eql(false)
+                                res.body.should.have.property('status')
+                                res.body.should.have.property('status').eql('Unfollowed')
+                                done()
+                            })
+                    })
+                })
+            })
+        })
+    })
+
 })
 
 AddUser = (user, callback) => {

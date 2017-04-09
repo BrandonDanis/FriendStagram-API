@@ -58,7 +58,16 @@ module.exports.findUser = (username) => {
             observer.onCompleted();
         })
     });
-    return Rx.Observable.forkJoin(userObservable, postsObservable, followersObservable);
+    const followingObservable = Rx.Observable.create(observer => {
+        db.raw("SELECT following FROM USERS, USERS_FOLLOWS WHERE USERS.USERNAME = $1 AND USERS_FOLLOWS.FOLLOWER = USERS.ID", [username]).rows((err,rows) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(rows);
+            observer.onCompleted();
+        })
+    });
+    return Rx.Observable.forkJoin(userObservable, postsObservable, followersObservable, followingObservable);
 };
 
 module.exports.findAllUsers = () => {

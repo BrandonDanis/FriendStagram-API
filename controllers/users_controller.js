@@ -55,9 +55,10 @@ module.exports.findUser = ({params: {username = null}}, res) => {
     const observable = user.findUser(username);
     observable.subscribe(
         next => {
-            let [user, posts, followers] = next;
+            let [user, posts, followers, following] = next;
             user.posts = posts;
             user.followers = followers;
+            user.following = following;
             res.status(202).json({
                 error: false,
                 data: user

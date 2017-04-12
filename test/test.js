@@ -149,11 +149,11 @@ describe("Users", () => {
                     res.body.data.posts.should.be.a('array')
                     res.body.data.posts.length.should.be.eql(0)
                     res.body.data.should.have.property('followers')
-                    res.body.data.posts.should.be.a('array')
-                    res.body.data.posts.length.should.be.eql(0)
+                    res.body.data.followers.should.be.a('array')
+                    res.body.data.followers.length.should.be.eql(0)
                     res.body.data.should.have.property('following')
-                    res.body.data.posts.should.be.a('array')
-                    res.body.data.posts.length.should.be.eql(0)
+                    res.body.data.following.should.be.a('array')
+                    res.body.data.following.length.should.be.eql(0)
                     done()
                 })
         })
@@ -618,6 +618,58 @@ describe("Follow", () => {
                         res.body.should.have.property('status').eql('Unfollowed')
                         done()
                     })
+            })
+        })
+    })
+
+    it("GET /users/:username | Should be able to see who is following when requesting user", (done) => {
+        let user1 = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let user2 = {
+            "username": "brando2",
+            "password": "brando2",
+            "email": "brando2@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        AddUser(user1, (user1_id) => {
+            AddUser(user2, (user2_id) => {
+                LoginUser(user1, (token) => {
+                    FollowUser(token, user2_id, () => {
+                        chai.request(server)
+                            .get(`/users/${user2.username}`)
+                            .end((err,res) => {
+                                res.should.have.status(202)
+                                res.body.should.be.a('object')
+                                res.body.should.have.property('error')
+                                res.body.should.have.property('error').eql(false)
+                                res.body.should.have.property('data')
+                                res.body.data.should.have.property('name')
+                                res.body.data.should.have.property('name').eql(`${user2.name}`)
+                                res.body.data.should.have.property('username')
+                                res.body.data.should.have.property('username').eql(`${user2.username}`)
+                                res.body.data.should.have.property('datecreated')
+                                res.body.data.should.have.property('description')
+                                res.body.data.should.have.property('posts')
+                                res.body.data.posts.should.be.a('array')
+                                res.body.data.posts.length.should.be.eql(0)
+                                res.body.data.should.have.property('followers')
+                                res.body.data.followers.should.be.a('array')
+                                res.body.data.followers.length.should.be.eql(1)
+                                res.body.data.followers[0].should.have.property('follower')
+                                res.body.data.followers[0].should.have.property('follower').eql(user1_id)
+                                res.body.data.should.have.property('following')
+                                res.body.data.following.should.be.a('array')
+                                res.body.data.following.length.should.be.eql(0)
+                                done()
+                            })
+                    })
+                })
             })
         })
     })

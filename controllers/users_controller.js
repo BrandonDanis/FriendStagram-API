@@ -60,6 +60,14 @@ module.exports.findUser = ({params: {username = null}}, res) => {
     observable.subscribe(
         next => {
             let [user, posts, followers, following] = next;
+            posts.map(post => {
+                post.user = {
+                    username: user.username,
+                    profile_picture_url: user.profile_picture_url,
+                    name: user.name
+                };
+                return post;
+            });
             user.posts = posts;
             user.followers = followers;
             user.following = following;

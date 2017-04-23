@@ -1,9 +1,11 @@
+require('dotenv').config();
 process.env.NODE_ENV = "test";
 
 const db = require('pg-bricks').configure(process.env.TEST_DB_URL);
 const chai = require('chai');
 const chaiHttp = require('chai-http');
 const server = require('../index');
+const beforeEach = require('mocha').beforeEach;
 const should = chai.should();
 
 chai.use(chaiHttp);
@@ -22,9 +24,7 @@ describe("Heartbeat", () => {
 describe("Users", () => {
 
     beforeEach((done) => {
-        EmptyDatabase(() => {
-            done()
-        })
+        EmptyDatabase(done)
     })
 
     it("POST /users | Should create a new user", (done) => {
@@ -50,7 +50,7 @@ describe("Users", () => {
         chai.request(server)
             .post("/users/")
             .send(user)
-            .end((err,res) => {
+            .end((err, res) => {
                 res.should.have.status(401)
                 res.body.should.be.a('object')
                 res.body.should.have.property('error')
@@ -69,7 +69,7 @@ describe("Users", () => {
         chai.request(server)
             .post("/users/")
             .send(user)
-            .end((err,res) => {
+            .end((err, res) => {
                 res.should.have.status(401)
                 res.body.should.be.a('object')
                 res.body.should.have.property('error')
@@ -133,7 +133,7 @@ describe("Users", () => {
         AddUser(user, () => {
             chai.request(server)
                 .get(`/users/${user.username}`)
-                .end((err,res) => {
+                .end((err, res) => {
                     res.should.have.status(202)
                     res.body.should.be.a('object')
                     res.body.should.have.property('error')
@@ -171,7 +171,7 @@ describe("Users", () => {
             chai.request(server)
                 .post("/users/login")
                 .send(user)
-                .end((err,res) => {
+                .end((err, res) => {
                     res.should.have.status(200)
                     res.body.should.be.a('object')
                     res.body.should.have.property('error')
@@ -197,7 +197,7 @@ describe("Posts", () => {
     it("GET /posts | Should return empty list of posts", (done) => {
         chai.request(server)
             .get("/posts")
-            .end((err,res) => {
+            .end((err, res) => {
                 res.should.have.status(200)
                 res.body.should.be.a('object')
                 res.body.should.have.property('error')
@@ -229,7 +229,7 @@ describe("Posts", () => {
                 SubmitPost(post, token, () => {
                     chai.request(server)
                         .get("/posts")
-                        .end((err,res) => {
+                        .end((err, res) => {
                             res.should.have.status(200)
                             res.body.should.be.a('object')
                             res.body.should.have.property('error')
@@ -273,7 +273,7 @@ describe("Posts", () => {
                 chai.request(server)
                     .post("/posts")
                     .send(post)
-                    .end((err,res) => {
+                    .end((err, res) => {
                         res.should.have.status(401)
                         res.body.should.be.a('object')
                         res.body.should.have.property('error')
@@ -308,7 +308,7 @@ describe("Posts", () => {
                 SubmitPost(post, token, (post_info) => {
                     chai.request(server)
                         .get(`/posts/id/${post_info.id}`)
-                        .end((err,res) => {
+                        .end((err, res) => {
                             res.should.have.status(200)
                             res.body.should.be.a('object')
                             res.body.should.have.property('error')
@@ -348,7 +348,7 @@ describe("Posts", () => {
                         .delete("/posts/")
                         .set('token', token)
                         .send({post: post_info["id"]})
-                        .end((err,res) => {
+                        .end((err, res) => {
                             res.should.have.status(200)
                             res.body.should.be.a('object')
                             res.body.should.have.property('error')
@@ -384,7 +384,7 @@ describe("Posts", () => {
                     chai.request(server)
                         .delete("/posts/")
                         .send({post: post_info["id"]})
-                        .end((err,res) => {
+                        .end((err, res) => {
                             res.should.have.status(401)
                             res.body.should.be.a('object')
                             res.body.should.have.property('error')
@@ -412,7 +412,7 @@ describe("Follow", () => {
     it("GET /follow/getAllFollowing/:userId | Should return empty list of following", (done) => {
         chai.request(server)
             .get("/follow/getAllFollowing/1")
-            .end((err,res) => {
+            .end((err, res) => {
                 res.should.have.status(200)
                 res.body.should.be.a('object')
                 res.body.should.have.property('error')
@@ -427,7 +427,7 @@ describe("Follow", () => {
     it("GET /follow/getAllFollowers/:userId | Should return empty list of followers", (done) => {
         chai.request(server)
             .get("/follow/getAllFollowing/1")
-            .end((err,res) => {
+            .end((err, res) => {
                 res.should.have.status(200)
                 res.body.should.be.a('object')
                 res.body.should.have.property('error')
@@ -461,9 +461,9 @@ describe("Follow", () => {
                         .post("/follow")
                         .set('token', token)
                         .send({
-                            "userIdToFollow": user2_id
+                            'followId': user2_id
                         })
-                        .end((err,res) => {
+                        .end((err, res) => {
                             res.should.have.status(200)
                             res.body.should.be.a('object')
                             res.body.should.have.property('error')
@@ -491,9 +491,9 @@ describe("Follow", () => {
                     .post("/follow")
                     .set('token', token)
                     .send({
-                        "userIdToFollow": -1
+                        'followId': -1
                     })
-                    .end((err,res) => {
+                    .end((err, res) => {
                         res.should.have.status(401)
                         res.body.should.be.a('object')
                         res.body.should.have.property('error')
@@ -529,9 +529,9 @@ describe("Follow", () => {
                             .post("/follow")
                             .set('token', token)
                             .send({
-                                "userIdToFollow": user2_id
+                                "followId": user2_id
                             })
-                            .end((err,res) => {
+                            .end((err, res) => {
                                 res.should.have.status(200)
                                 res.body.should.be.a('object')
                                 res.body.should.have.property('error')
@@ -569,9 +569,9 @@ describe("Follow", () => {
                             .delete("/follow")
                             .set('token', token)
                             .send({
-                                "userIdToFollow": user2_id
+                                'unfollowId': user2_id
                             })
-                            .end((err,res) => {
+                            .end((err, res) => {
                                 res.should.have.status(200)
                                 res.body.should.be.a('object')
                                 res.body.should.have.property('error')
@@ -607,9 +607,9 @@ describe("Follow", () => {
                     .delete("/follow")
                     .set('token', token)
                     .send({
-                        "userIdToFollow": -1
+                        'unfollowId': -1
                     })
-                    .end((err,res) => {
+                    .end((err, res) => {
                         res.should.have.status(200)
                         res.body.should.be.a('object')
                         res.body.should.have.property('error')
@@ -643,7 +643,7 @@ describe("Follow", () => {
                     FollowUser(token, user2_id, () => {
                         chai.request(server)
                             .get(`/users/${user2.username}`)
-                            .end((err,res) => {
+                            .end((err, res) => {
                                 res.should.have.status(202)
                                 res.body.should.be.a('object')
                                 res.body.should.have.property('error')
@@ -695,7 +695,7 @@ describe("Follow", () => {
                     FollowUser(token, user2_id, () => {
                         chai.request(server)
                             .get(`/users/${user1.username}`)
-                            .end((err,res) => {
+                            .end((err, res) => {
                                 res.should.have.status(202)
                                 res.body.should.be.a('object')
                                 res.body.should.have.property('error')
@@ -732,7 +732,7 @@ AddUser = (user, callback) => {
     chai.request(server)
         .post("/users/")
         .send(user)
-        .end((err,res) => {
+        .end((err, res) => {
             res.should.have.status(201)
             res.body.should.be.a('object')
             res.body.should.have.property('error')
@@ -746,7 +746,7 @@ AddInvalidUser = (user, callback) => {
     chai.request(server)
         .post("/users/")
         .send(user)
-        .end((err,res) => {
+        .end((err, res) => {
             res.should.have.status(500)
             res.body.should.be.a('object')
             res.body.should.have.property('error')
@@ -760,9 +760,9 @@ FollowUser = (token, userIdToFollow, callback) => {
         .post("/follow")
         .set('token', token)
         .send({
-            "userIdToFollow": userIdToFollow
+            'followId': userIdToFollow
         })
-        .end((err,res) => {
+        .end((err, res) => {
             res.should.have.status(200)
             res.body.should.be.a('object')
             res.body.should.have.property('error')
@@ -777,7 +777,7 @@ LoginUser = (user, callback) => {
     chai.request(server)
         .post("/users/login")
         .send(user)
-        .end((err,res) => {
+        .end((err, res) => {
             res.should.have.status(200)
             res.body.should.be.a('object')
             res.body.should.have.property('error')
@@ -792,7 +792,7 @@ SubmitPost = (post, token, callback) => {
         .post("/posts")
         .set('token', token)
         .send(post)
-        .end((err,res) => {
+        .end((err, res) => {
             res.should.have.status(200)
             res.body.should.be.a('object')
             res.body.should.have.property('error')
@@ -802,13 +802,10 @@ SubmitPost = (post, token, callback) => {
 }
 
 EmptyDatabase = (callback) => {
-    db.raw("DELETE FROM USERS_SESSIONS").rows((err,rows) => {
-        db.raw("DELETE FROM USERS_FOLLOWS").rows((err,rows) => {
-            db.raw("DELETE FROM POSTS").rows((err,rows) => {
-                db.raw("DELETE FROM USERS").rows((err,rows) => {
-                    callback()
-                })
-            })
-        })
-    })
+    db.delete().from('users').run((err) => {
+       if (err)
+           console.error(err);
+       else
+           callback();
+    });
 }

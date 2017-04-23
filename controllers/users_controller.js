@@ -1,5 +1,4 @@
 const user = require('../model/users_model')
-const post = require('../model/posts_model')
 const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')

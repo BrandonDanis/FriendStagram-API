@@ -1,14 +1,14 @@
 const config = require('../config')
 const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
 
-
 //TODO: ensure that followeeID is an actual valid id
 module.exports.followUser = (followerId, followeeId, callback) => {
-    db.raw("SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = $2", [followerId, followeeId]).rows((err,rows) => {
-		if(rows.length == 0){
-			db.raw("INSERT INTO users_follows VALUES ($1,$2)", [followerId, followeeId]).rows((err,rows) => {
+    db.raw("SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = $2", [followerId, followeeId]).row((err,row) => {
+		if (!row) {
+			db.raw("INSERT INTO users_follows VALUES ($1, $2)", [followerId, followeeId]).run((err) => {
 				if(err){
-					if(err.message.indexOf('violates foreign key constraint') > -1){
+					console.log(err.code);
+					if(err.code === '23503'){
 		                callback(401, "User doesn't exist")
 		            }else{
 						callback(500, "Error while attempting to follow")
@@ -17,7 +17,7 @@ module.exports.followUser = (followerId, followeeId, callback) => {
 					callback(200, "Now Following")
 				}
 			})
-		}else{
+		} else {
 			callback(200, "Already following")
 		}
 	})
@@ -26,8 +26,7 @@ module.exports.followUser = (followerId, followeeId, callback) => {
 module.exports.unfollowUser = (followerId, followeeId, callback) => {
     db.raw("delete from users_follows where follower = $1 and following = $2", [followerId, followeeId]).rows((err,rows) => {
 		if(err){
-			console.log(err);
-			callback(500, "Error un-following")
+			callback(500, "Error unfollowing")
 		}else{
 			callback(200, "Unfollowed")
 		}

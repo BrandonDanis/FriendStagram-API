@@ -37,13 +37,14 @@ module.exports.register = ({body: {username = null, password = null, email = nul
     }
     else {
         user.register(username, password, email, name).subscribe(
-            unused =>
+            id =>
                 res.status(201).json({
                     error: false,
-                    data: {username}
+                    data: id
                 }),
             err => {
                 let message = '';
+                //noinspection EqualityComparisonWithCoercionJS
                 if (err.code == 23505) {
                     message = `${utils.capitalize(err.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`;
                 }

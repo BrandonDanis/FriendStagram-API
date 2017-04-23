@@ -40,7 +40,7 @@ module.exports.findUser = (username) => {
             observer.onCompleted();
         });
     });
-    const postsObservable = Rx.Observable.create((observer => {
+    const postsObservable = Rx.Observable.create(observer => {
         db.raw('SELECT * FROM posts WHERE user_id = (SELECT id FROM users WHERE username  = $1) ORDER BY id DESC;', [username]).rows((err, rows) => {
             if (err)
                 observer.onError(err);
@@ -48,23 +48,55 @@ module.exports.findUser = (username) => {
                 observer.onNext(rows);
             observer.onCompleted();
         })
-    }));
+    });
     const followersObservable = Rx.Observable.create(observer => {
-        db.raw("SELECT follower FROM USERS, USERS_FOLLOWS WHERE USERS.USERNAME = $1 AND USERS_FOLLOWS.FOLLOWING = USERS.ID", [username]).rows((err,rows) => {
+        db.raw("SELECT uf.follower FROM users_follows uf JOIN users u ON uf.following = u.id WHERE uf.following = (SELECT id FROM users WHERE username = $1);", [username]).rows((err,rows) => {
             if (err)
                 observer.onError(err);
             else
-                observer.onNext(rows);
+                observer.onNext(rows.map(row => row.follower));
             observer.onCompleted();
         })
+    }).flatMap(followerIDs => {
+        return Rx.Observable.create(observer => {
+            if (followerIDs.length === 0) {
+                observer.onNext([]);
+                observer.onCompleted();
+            } else {
+                const params = followerIDs.map((id, index) => `\$${index + 1}`).join(', ');
+                db.raw(`SELECT username FROM users WHERE id IN (${params})`, followerIDs).rows((err, rows) => {
+                    if (err)
+                        observer.onError(err);
+                    else
+                        observer.onNext(rows);
+                    observer.onCompleted();
+                });
+            }
+        });
     });
     const followingObservable = Rx.Observable.create(observer => {
-        db.raw("SELECT following FROM USERS, USERS_FOLLOWS WHERE USERS.USERNAME = $1 AND USERS_FOLLOWS.FOLLOWER = USERS.ID", [username]).rows((err,rows) => {
+        db.raw("SELECT uf.following FROM users_follows uf JOIN users u ON uf.follower = u.id WHERE uf.follower = (SELECT id FROM users WHERE username = $1);", [username]).rows((err,rows) => {
             if (err)
                 observer.onError(err);
             else
-                observer.onNext(rows);
+                observer.onNext(rows.map(row => row.following));
             observer.onCompleted();
+        })
+    }).flatMap(followingIDs => {
+        return Rx.Observable.create(observer => {
+            if (followingIDs.length === 0) {
+                observer.onNext([]);
+                observer.onCompleted();
+            } else {
+                const params = followingIDs.map((id, index) => `\$${index + 1}`).join(', ');
+                db.raw(`SELECT username FROM users WHERE id IN (${params})`, followingIDs).rows((err, rows) => {
+                    if (err)
+                        observer.onError(err);
+                    else
+                        observer.onNext(rows);
+                    observer.onCompleted();
+                });
+            }
         })
     });
     return Rx.Observable.forkJoin(userObservable, postsObservable, followersObservable, followingObservable);

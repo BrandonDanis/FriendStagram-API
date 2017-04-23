@@ -20,7 +20,7 @@ CREATE TABLE users_sessions (
     id UUID     NOT NULL,
     user_id     INTEGER NOT NULL,
     PRIMARY KEY (id, user_id),
-    FOREIGN KEY (user_id) REFERENCES users (id)
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS users_follows;
@@ -28,8 +28,8 @@ CREATE TABLE users_follows (
     follower    INTEGER NOT NULL,
     following   INTEGER NOT NULL,
     PRIMARY KEY (follower, following),
-    FOREIGN KEY (follower) REFERENCES users (id),
-    FOREIGN KEY (following) REFERENCES users (id)
+    FOREIGN KEY (follower) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (following) REFERENCES users (id) ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS tags;
@@ -46,7 +46,7 @@ CREATE TABLE posts (
   user_id     INTEGER,
   tag_id      INTEGER,
   image_url   VARCHAR(255) NOT NULL,
-  FOREIGN KEY (user_id) REFERENCES users (id),
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
   FOREIGN KEY (tag_id) REFERENCES tags (id),
   PRIMARY KEY (id)
 );
@@ -56,8 +56,8 @@ CREATE TABLE post_likes (
   id      SERIAL,
   post_id INTEGER,
   user_id INTEGER,
-  FOREIGN KEY (user_id) REFERENCES users (id),
-  FOREIGN KEY (post_id) REFERENCES posts (id),
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
   PRIMARY KEY (id)
 );
 
@@ -67,6 +67,6 @@ CREATE TABLE post_tags (
   post_id INTEGER,
   tag_id  INTEGER,
   FOREIGN KEY (post_id) REFERENCES posts (id),
-  FOREIGN KEY (tag_id) REFERENCES tags (id),
+  FOREIGN KEY (tag_id) REFERENCES tags (id) ON DELETE CASCADE,
   PRIMARY KEY (id)
 );

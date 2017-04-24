@@ -2,13 +2,14 @@ const config = require('../config')
 const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
 
 //TODO: ensure that followeeID is an actual valid id
-module.exports.followUser = (followerId, followeeId, callback) => {
-    db.raw("SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = $2", [followerId, followeeId]).row((err,row) => {
+module.exports.followUser = (followerId, followeeUsername, callback) => {
+    db.raw("SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = (SELECT id FROM users WHERE username = $2)", [followerId, followeeUsername]).row((err,row) => {
 		if (!row) {
-			db.raw("INSERT INTO users_follows VALUES ($1, $2)", [followerId, followeeId]).run((err) => {
+			db.raw("INSERT INTO users_follows VALUES ($1, (SELECT id FROM users WHERE username = $2))", [followerId, followeeUsername]).run((err) => {
 				if(err){
 					console.log(err.code);
-					if(err.code === '23503'){
+					//noinspection EqualityComparisonWithCoercionJS
+                    if(err.code == 23502){
 		                callback(401, "User doesn't exist")
 		            }else{
 						callback(500, "Error while attempting to follow")
@@ -23,8 +24,9 @@ module.exports.followUser = (followerId, followeeId, callback) => {
 	})
 }
 
-module.exports.unfollowUser = (followerId, followeeId, callback) => {
-    db.raw("delete from users_follows where follower = $1 and following = $2", [followerId, followeeId]).rows((err,rows) => {
+// TODO: Add meaningful error message
+module.exports.unfollowUser = (unfollowerId, unfolloweeUsername, callback) => {
+    db.raw("DELETE FROM users_follows where follower = $1 and following = (SELECT id FROM users WHERE username = $2) RETURNING *", [unfollowerId, unfolloweeUsername]).row(err => {
 		if(err){
 			callback(500, "Error unfollowing")
 		}else{

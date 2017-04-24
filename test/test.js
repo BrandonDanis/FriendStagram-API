@@ -455,13 +455,13 @@ describe("Follow", () => {
         }
 
         AddUser(user1, () => {
-            AddUser(user2, (user2_id) => {
+            AddUser(user2, (user2_username) => {
                 LoginUser(user1, (token) => {
                     chai.request(server)
                         .post("/follow")
                         .set('token', token)
                         .send({
-                            'followId': user2_id
+                            'followUsername': user2_username
                         })
                         .end((err, res) => {
                             res.should.have.status(200)
@@ -477,7 +477,7 @@ describe("Follow", () => {
         })
     })
 
-    it("POST /follow | User should not be able to follow a non-existant user", (done) => {
+    it("POST /follow | User should not be able to follow a non-existent user", (done) => {
         let user1 = {
             "username": "brando",
             "password": "brando",
@@ -491,7 +491,7 @@ describe("Follow", () => {
                     .post("/follow")
                     .set('token', token)
                     .send({
-                        'followId': -1
+                        'followUsername': 'rushil'
                     })
                     .end((err, res) => {
                         res.should.have.status(401)
@@ -522,14 +522,14 @@ describe("Follow", () => {
         }
 
         AddUser(user1, () => {
-            AddUser(user2, (user2_id) => {
+            AddUser(user2, (user2_username) => {
                 LoginUser(user1, (token) => {
-                    FollowUser(token, user2_id, () => {
+                    FollowUser(token, user2_username, () => {
                         chai.request(server)
                             .post("/follow")
                             .set('token', token)
                             .send({
-                                "followId": user2_id
+                                "followUsername": user2_username
                             })
                             .end((err, res) => {
                                 res.should.have.status(200)
@@ -562,14 +562,14 @@ describe("Follow", () => {
         }
 
         AddUser(user1, () => {
-            AddUser(user2, (user2_id) => {
+            AddUser(user2, (user2_username) => {
                 LoginUser(user1, (token) => {
-                    FollowUser(token, user2_id, () => {
+                    FollowUser(token, user2_username, () => {
                         chai.request(server)
                             .delete("/follow")
                             .set('token', token)
                             .send({
-                                'unfollowId': user2_id
+                                'unfollowUsername': user2_username
                             })
                             .end((err, res) => {
                                 res.should.have.status(200)
@@ -586,18 +586,11 @@ describe("Follow", () => {
         })
     })
 
-    it("DELETE /follow | User should be able to unfollow a user", (done) => {
+    it("DELETE /follow | User should not be able to unfollow a non-existent user", (done) => {
         let user1 = {
             "username": "brando",
             "password": "brando",
             "email": "brando@brando.com",
-            "name": "Brandon Danis"
-        }
-
-        let user2 = {
-            "username": "brando2",
-            "password": "brando2",
-            "email": "brando2@brando.com",
             "name": "Brandon Danis"
         }
 
@@ -607,15 +600,15 @@ describe("Follow", () => {
                     .delete("/follow")
                     .set('token', token)
                     .send({
-                        'unfollowId': -1
+                        'unfollowUsername': 'rushil'
                     })
                     .end((err, res) => {
-                        res.should.have.status(200)
+                        res.should.have.status(500)
                         res.body.should.be.a('object')
                         res.body.should.have.property('error')
-                        res.body.should.have.property('error').eql(false)
+                        res.body.should.have.property('error').eql(true)
                         res.body.should.have.property('status')
-                        res.body.should.have.property('status').eql('Unfollowed')
+                        res.body.should.have.property('status').eql('Error unfollowing')
                         done()
                     })
             })
@@ -637,10 +630,10 @@ describe("Follow", () => {
             "name": "Brandon Danis"
         }
 
-        AddUser(user1, (user1_id) => {
-            AddUser(user2, (user2_id) => {
+        AddUser(user1, (user1_username) => {
+            AddUser(user2, (user2_username) => {
                 LoginUser(user1, (token) => {
-                    FollowUser(token, user2_id, () => {
+                    FollowUser(token, user2_username, () => {
                         chai.request(server)
                             .get(`/users/${user2.username}`)
                             .end((err, res) => {
@@ -661,8 +654,8 @@ describe("Follow", () => {
                                 res.body.data.should.have.property('followers')
                                 res.body.data.followers.should.be.a('array')
                                 res.body.data.followers.length.should.be.eql(1)
-                                res.body.data.followers[0].should.have.property('follower')
-                                res.body.data.followers[0].should.have.property('follower').eql(user1_id)
+                                res.body.data.followers[0].should.have.property('username')
+                                res.body.data.followers[0].should.have.property('username').eql(user1_username)
                                 res.body.data.should.have.property('following')
                                 res.body.data.following.should.be.a('array')
                                 res.body.data.following.length.should.be.eql(0)
@@ -689,10 +682,10 @@ describe("Follow", () => {
             "name": "Brandon Danis"
         }
 
-        AddUser(user1, (user1_id) => {
-            AddUser(user2, (user2_id) => {
+        AddUser(user1, () => {
+            AddUser(user2, (user2_username) => {
                 LoginUser(user1, (token) => {
-                    FollowUser(token, user2_id, () => {
+                    FollowUser(token, user2_username, () => {
                         chai.request(server)
                             .get(`/users/${user1.username}`)
                             .end((err, res) => {
@@ -716,8 +709,8 @@ describe("Follow", () => {
                                 res.body.data.should.have.property('following')
                                 res.body.data.following.should.be.a('array')
                                 res.body.data.following.length.should.be.eql(1)
-                                res.body.data.following[0].should.have.property('following')
-                                res.body.data.following[0].should.have.property('following').eql(user2_id)
+                                res.body.data.following[0].should.have.property('username')
+                                res.body.data.following[0].should.have.property('username').eql(user2_username)
                                 done()
                             })
                     })
@@ -738,7 +731,7 @@ AddUser = (user, callback) => {
             res.body.should.have.property('error')
             res.body.should.have.property('error').eql(false)
             res.body.should.have.property('data')
-            callback(res["body"]["data"])
+            callback(res.body.data.username)
         })
 }
 
@@ -760,7 +753,7 @@ FollowUser = (token, userIdToFollow, callback) => {
         .post("/follow")
         .set('token', token)
         .send({
-            'followId': userIdToFollow
+            'followUsername': userIdToFollow
         })
         .end((err, res) => {
             res.should.have.status(200)

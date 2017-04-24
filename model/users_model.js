@@ -19,11 +19,11 @@ module.exports.register = (username, unHashedPassword, email, name) => {
             });
         }).flatMap(password => {
             return Rx.Observable.create(observer => {
-                db.insert('users', {username, password, email, name}).returning('id').row((err, row) => {
+                db.insert('users', {username, password, email, name}).run(err => {
                     if (err)
                         observer.onError(err);
                     else
-                        observer.onNext(row.id);
+                        observer.onNext({username});
                     observer.onCompleted();
                 });
             })

@@ -1,5 +1,4 @@
 const user = require('../model/users_model')
-const post = require('../model/posts_model')
 const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')
@@ -37,15 +36,20 @@ module.exports.register = ({body: {username = null, password = null, email = nul
     }
     else {
         user.register(username, password, email, name).subscribe(
-            (id) =>
+            id =>
                 res.status(201).json({
                     error: false,
                     data: id
                 }),
             err => {
+                let message = '';
+                //noinspection EqualityComparisonWithCoercionJS
+                if (err.code == 23505) {
+                    message = `${utils.capitalize(err.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`;
+                }
                 res.status(500).json({
                     error: true,
-                    data: null
+                    data: message
                 })
             })
     }
@@ -56,6 +60,14 @@ module.exports.findUser = ({params: {username = null}}, res) => {
     observable.subscribe(
         next => {
             let [user, posts, followers, following] = next;
+            posts.map(post => {
+                post.user = {
+                    username: user.username,
+                    profile_picture_url: user.profile_picture_url,
+                    name: user.name
+                };
+                return post;
+            });
             user.posts = posts;
             user.followers = followers;
             user.following = following;

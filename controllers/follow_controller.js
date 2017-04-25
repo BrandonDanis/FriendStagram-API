@@ -1,11 +1,11 @@
 const follow = require('../model/follow_model')
 const utils = require('../utils/util')
 
-module.exports.followUser = ({body: {userIdToFollow = null}, user = null}, res) => {
-	if(userIdToFollow){
-		follow.followUser(user.id, userIdToFollow, (status, msg) => {
-			var error = true
-			if(status == 200)
+module.exports.followUser = ({body: {followUsername = null}, user = null}, res) => {
+	if (followUsername) {
+		follow.followUser(user.id, followUsername, (status, msg) => {
+			let error = true;
+			if(status === 200)
 				error = false
 			res.status(status).json({
 				error: error,
@@ -15,17 +15,17 @@ module.exports.followUser = ({body: {userIdToFollow = null}, user = null}, res) 
 	}else{
 		res.status(400).json({
 			error: true,
-			status: "userIdToFollow parameter was not set"
+			status: "followUsername parameter was not set"
 		})
 	}
 }
 
-module.exports.unfollowUser = ({body: {userIdToFollow = null}, user = null}, res) => {
-	if(userIdToFollow){
-		follow.unfollowUser(user.id, userIdToFollow, (status, msg) => {
-			var error = true
-			if(status == 200)
-				error = false
+module.exports.unfollowUser = ({body: {unfollowUsername = null}, user = null}, res) => {
+	if(unfollowUsername){
+		follow.unfollowUser(user.id, unfollowUsername, (status, msg) => {
+			let error = true;
+			if(status === 200)
+				error = false;
 			res.status(status).json({
 				error: error,
 				status: msg
@@ -34,7 +34,7 @@ module.exports.unfollowUser = ({body: {userIdToFollow = null}, user = null}, res
 	}else{
 		res.status(400).json({
 			error: true,
-			status: "userIdToFollow parameter was not set"
+			status: "unfollowUsername parameter was not set"
 		})
 	}
 }

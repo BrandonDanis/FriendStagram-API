@@ -23,6 +23,14 @@ POST /posts //Upload a post. Authenticated.
 DELETE /posts //Ability to delete a post. Authenticated.
 ```
 
+### Following
+```javascript
+	app.get('/getAllFollowing/:userId', followcontroller.getAllFollowing)
+	app.get('/getAllFollowers/:userId', followcontroller.getAllFollowers)
+    app.post('/', auth.authenticate, followcontroller.followUser)
+    app.delete('/', auth.authenticate, followcontroller.unfollowUser)
+```
+
 ## Features
 - User sessions with JWT
 - Password hashing using BCrypt

@@ -25,10 +25,11 @@ DELETE /posts //Ability to delete a post. Authenticated.
 
 ### Following
 ```javascript
-	app.get('/getAllFollowing/:userId', followcontroller.getAllFollowing)
-	app.get('/getAllFollowers/:userId', followcontroller.getAllFollowers)
-    app.post('/', auth.authenticate, followcontroller.followUser)
-    app.delete('/', auth.authenticate, followcontroller.unfollowUser)
+var follows = 'routes/follow-routes.js';
+GET /follow/getAllFollowing/:userId //Returns all users that this user follows
+GET /follow/getAllFollowers/:userId //Returns all users that this user is followed by
+POST /follow //Follow a user. Authenticated
+DELETE /follow //Unfollows a user. Authenticated
 ```
 
 ## Features

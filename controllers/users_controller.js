@@ -4,12 +4,18 @@ const jwt = require('jwt-simple')
 const cfg = require('../config')
 
 module.exports.findAllUsers = (req, res) => {
-    user.findAllUsers((err, data) => {
-        res.status(err ? 404 : 200).json({
-            error: err,
-            data: data
-        })
-    })
+    user.findAllUsers().subscribe(
+        users =>
+            res.status(200).json({
+                error: false,
+                users: users
+            }),
+        err =>
+            res.status(404).json({
+                error: true,
+                users: []
+            })
+    )
 }
 
 module.exports.register = ({body: {username = null, password = null, email = null, name = null}}, res) => {

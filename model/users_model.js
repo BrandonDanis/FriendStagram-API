@@ -261,3 +261,16 @@ module.exports.delete = (id) => {
         });
     });
 }
+
+module.exports.updateProfilePicture = (userId, image_url) => {
+    return Rx.Observable.create(observer => {
+        db.update('users', {profile_picture_url: image_url}).where('id', userId).run((err) => {
+            if(err){
+                observer.onError(err)
+            }else{
+                observer.onNext()
+            }
+            observer.onCompleted()
+        })
+    })
+}

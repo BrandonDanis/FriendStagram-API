@@ -1,7 +1,7 @@
 const config = require('../config')
 const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
 const bcrypt = require('bcrypt-nodejs')
-const saltRounds = 10
+const saltRounds = config['saltRounds']
 const uuid = require('uuid')
 const Rx = require('rx')
 
@@ -260,4 +260,17 @@ module.exports.delete = (id) => {
             observer.onCompleted();
         });
     });
+}
+
+module.exports.updateProfilePicture = (userId, image_url) => {
+    return Rx.Observable.create(observer => {
+        db.update('users', {profile_picture_url: image_url}).where('id', userId).run((err) => {
+            if(err){
+                observer.onError(err)
+            }else{
+                observer.onNext()
+            }
+            observer.onCompleted()
+        })
+    })
 }

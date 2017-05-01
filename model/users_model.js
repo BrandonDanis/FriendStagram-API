@@ -1,7 +1,7 @@
 const config = require('../config')
 const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
 const bcrypt = require('bcrypt-nodejs')
-const saltRounds = 10
+const saltRounds = config['saltRounds']
 const uuid = require('uuid')
 const Rx = require('rx')
 

@@ -586,7 +586,7 @@ describe("Follow", () => {
         })
     })
 
-    it("DELETE /follow | User should not be able to unfollow a non-existent user", (done) => {
+    it("DELETE /follow | User should be able to attempt to unfollow a non-existent user", (done) => {
         let user1 = {
             "username": "brando",
             "password": "brando",
@@ -603,12 +603,12 @@ describe("Follow", () => {
                         'unfollowUsername': 'rushil'
                     })
                     .end((err, res) => {
-                        res.should.have.status(500)
+                        res.should.have.status(200)
                         res.body.should.be.a('object')
                         res.body.should.have.property('error')
-                        res.body.should.have.property('error').eql(true)
+                        res.body.should.have.property('error').eql(false)
                         res.body.should.have.property('status')
-                        res.body.should.have.property('status').eql('Error unfollowing')
+                        res.body.should.have.property('status').eql('Unfollowed')
                         done()
                     })
             })

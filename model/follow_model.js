@@ -7,7 +7,6 @@ module.exports.followUser = (followerId, followeeUsername, callback) => {
 		if (!row) {
 			db.raw("INSERT INTO users_follows VALUES ($1, (SELECT id FROM users WHERE username = $2))", [followerId, followeeUsername]).run((err) => {
 				if(err){
-					console.log(err.code);
 					//noinspection EqualityComparisonWithCoercionJS
                     if(err.code == 23502){
 		                callback(401, "User doesn't exist")

@@ -211,3 +211,21 @@ module.exports.delete = (req, res) => {
             })
     })
 }
+
+module.exports.updateProfilePicture = ({user: {id = null}, body: {image_url = null} },res) => {
+    const updateProfilePictureObservable = user.updateProfilePicture(id, image_url)
+    updateProfilePictureObservable.subscribe(
+        () => {
+            res.status(200).json({
+                error: true,
+                data: 'Successfully update user profile'
+            })
+        },
+        err => {
+            res.status(500).json({
+                error: true,
+                data: 'Failed to update user profile'
+            })
+        }
+    )
+}

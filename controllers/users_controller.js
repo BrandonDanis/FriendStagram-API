@@ -217,7 +217,7 @@ module.exports.updateProfilePicture = ({user: {id = null}, body: {image_url = nu
     updateProfilePictureObservable.subscribe(
         () => {
             res.status(200).json({
-                error: true,
+                error: false,
                 data: 'Successfully update user profile'
             })
         },

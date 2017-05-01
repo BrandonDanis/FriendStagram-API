@@ -184,6 +184,46 @@ describe("Users", () => {
 
     })
 
+    it("PUT /user/profile_picture | Should allow user to update his profile picture", (done) => {
+        let user = {
+            "username": "brando",
+            "password": "brando",
+            "email": "brando@brando.com",
+            "name": "Brandon Danis"
+        }
+
+        let image_url = "myimage.png"
+
+        AddUser(user, () => {
+            LoginUser(user, (token) => {
+                chai.request(server)
+                    .put("/users/profile_picture")
+                    .set('token', token)
+                    .send({image_url: image_url})
+                    .end((err, res) => {
+                        res.should.have.status(200)
+                        res.body.should.be.a('object')
+                        res.body.should.have.property('error')
+                        res.body.should.have.property('error').eql(false)
+                        res.body.should.have.property('data')
+                        res.body.should.have.property('data').eql('Successfully update user profile')
+                        chai.request(server)
+                            .get(`/users/${user.username}`)
+                            .end((err, res) => {
+                                res.should.have.status(202)
+                                res.body.should.be.a('object')
+                                res.body.should.have.property('error')
+                                res.body.should.have.property('error').eql(false)
+                                res.body.should.have.property('data')
+                                res.body.data.should.have.property('profile_picture_url')
+                                res.body.data.should.have.property('profile_picture_url').eql(image_url)
+                                done()
+                            })
+                    })
+            })
+        })
+    })
+
 })
 
 describe("Posts", () => {

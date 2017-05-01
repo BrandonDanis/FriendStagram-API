@@ -26,8 +26,9 @@ module.exports.followUser = (followerId, followeeUsername, callback) => {
 
 // TODO: Add meaningful error message
 module.exports.unfollowUser = (unfollowerId, unfolloweeUsername, callback) => {
-    db.raw("DELETE FROM users_follows where follower = $1 and following = (SELECT id FROM users WHERE username = $2) RETURNING *", [unfollowerId, unfolloweeUsername]).row(err => {
+    db.raw("DELETE FROM users_follows where follower = $1 and following = (SELECT id FROM users WHERE username = $2) RETURNING *", [unfollowerId, unfolloweeUsername]).rows(err => {
 		if(err){
+            console.log(err);
 			callback(500, "Error unfollowing")
 		}else{
 			callback(200, "Unfollowed")

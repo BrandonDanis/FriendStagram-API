@@ -15,8 +15,8 @@ module.exports.addPosts = (description, url, tags, owner) => {
 }
 
 module.exports.getPostByID = (id) => {
-    return Rx.Observable.create(observer => {
-        db.select().from('posts').where(id).row((err, row) => {
+    const postInfoObservable = Rx.Observable.create(observer => {
+        db.raw(`SELECT P.id as post_id, P.description, P.image_url FROM POSTS as P, USERS as U WHERE P.id = ${id.id} AND P.user_id = U.id`).row((err, row) => {
             if (err)
                 observer.onError(err);
             else
@@ -24,6 +24,18 @@ module.exports.getPostByID = (id) => {
             observer.onCompleted();
         });
     });
+
+    const userInfoObservable = Rx.Observable.create(observer => {
+        db.raw(`SELECT U.id as user_id, U.username, U.profile_picture_url FROM POSTS as P, USERS as U WHERE P.id = ${id.id} AND P.user_id = U.id`).row((err, row) => {
+            if (err)
+                observer.onError(err);
+            else
+                observer.onNext(row);
+            observer.onCompleted();
+        });
+    });
+
+    return Rx.Observable.forkJoin(postInfoObservable, userInfoObservable);
 }
 
 // TODO: add sort

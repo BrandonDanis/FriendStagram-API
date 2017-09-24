@@ -54,6 +54,7 @@ module.exports.register = async ({body: {username = null, password = null, email
                     msg: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`
                 })
             }else{
+                console.log(e);
                 return res.status(500).json({error: true});
             }
         }

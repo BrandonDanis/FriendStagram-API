@@ -1,12 +1,13 @@
 const config = require('../config')
 const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
-const bcrypt = require('bcrypt-nodejs')
+const bcrypt = require('bcrypt')
 const saltRounds = config['saltRounds']
 const uuid = require('uuid')
 const Rx = require('rx')
 
-module.exports.register = (username, unHashedPassword, email, name) => {
-    const password = bcrypt.hashSync(unHashedPassword, bcrypt.genSaltSync(saltRounds), null);
+module.exports.register = async (username, unHashedPassword, email, name) => {
+    const allTheSalt = await bcrypt.genSalt(saltRounds)
+    const password = await bcrypt.hash(unHashedPassword, allTheSalt, null)
     return db.insert('users', {username, password, email, name}).returning('*').row();
 };
 

@@ -6,28 +6,8 @@ const uuid = require('uuid')
 const Rx = require('rx')
 
 module.exports.register = (username, unHashedPassword, email, name) => {
-    return Rx.Observable.create(observer => observer.onNext(bcrypt.genSaltSync(saltRounds)))
-        .flatMap(salt => {
-            return Rx.Observable.create(observer => {
-                bcrypt.hash(unHashedPassword, salt, null, (err, password) => {
-                    if (err)
-                        observer.onError(err);
-                    else
-                        observer.onNext(password);
-                    observer.onCompleted();
-                });
-            });
-        }).flatMap(password => {
-            return Rx.Observable.create(observer => {
-                db.insert('users', {username, password, email, name}).run(err => {
-                    if (err)
-                        observer.onError(err);
-                    else
-                        observer.onNext({username});
-                    observer.onCompleted();
-                });
-            })
-        });
+    const password = bcrypt.hashSync(unHashedPassword, bcrypt.genSaltSync(saltRounds), null);
+    return db.insert('users', {username, password, email, name}).returning('*').row();
 };
 
 module.exports.findUser = (username) => {

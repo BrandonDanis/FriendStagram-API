@@ -1,0 +1,16 @@
+version: "2"
+
+services:
+    friendstagram:
+        image: friendstagram/backend
+        restart: on-failure
+        environment:
+            - POSTGRES=postgres://localhost:5432/friendstagram
+        ports:
+            - "8080:8080"
+        depends_on:
+            - friendstagram-db
+    friendstagram-db:
+        image: postgres:latest
+        ports:
+            - "5432:5432"

@@ -5,12 +5,22 @@ services:
         image: friendstagram/backend
         restart: on-failure
         environment:
-            - POSTGRES=postgres://localhost:5432/friendstagram
+            # TODO: Use Docker secrets to hide this sensitive information
+            - DB_URL=postgres://friendstagram_admin:password@friendstagram-db/friendstagram
         ports:
             - "8080:8080"
         depends_on:
             - friendstagram-db
+        links:
+          - friendstagram-db
     friendstagram-db:
         image: postgres:latest
+        environment:
+          # TODO: Use Docker secrets to hide this sensitive information
+          - POSTGRES_USER=friendstagram_admin
+          - POSTGRES_PASSWORD=password
+          - POSTGRES_DB=friendstagram
         ports:
             - "5432:5432"
+        volumes:
+          - ./Database/db.sql:/docker-entrypoint-initdb.d/db.sql

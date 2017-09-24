@@ -18,7 +18,7 @@ module.exports.findAllUsers = (req, res) => {
     )
 }
 
-module.exports.register = ({body: {username = null, password = null, email = null, name = null}}, res) => {
+module.exports.register = async ({body: {username = null, password = null, email = null, name = null}}, res) => {
     let errorMessage = '';
 
     if (utils.isEmpty(username)) {
@@ -41,23 +41,22 @@ module.exports.register = ({body: {username = null, password = null, email = nul
         })
     }
     else {
-        user.register(username, password, email, name).subscribe(
-            id =>
-                res.status(201).json({
-                    error: false,
-                    data: id
-                }),
-            err => {
-                let message = '';
-                //noinspection EqualityComparisonWithCoercionJS
-                if (err.code == 23505) {
-                    message = `${utils.capitalize(err.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`;
-                }
-                res.status(500).json({
-                    error: true,
-                    data: message
-                })
+        try {
+            const {id, datecreated} = await user.register(username, password, email, name)
+            res.status(201).json({
+                error: false,
+                data: {name, username, email, datecreated, id}
             })
+        }catch (e) {
+            if(e.code === '23505'){
+                return res.status(409).json({
+                    error: true,
+                    msg: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`
+                })
+            }else{
+                return res.status(500).json({error: true});
+            }
+        }
     }
 }
 

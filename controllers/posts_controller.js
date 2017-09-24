@@ -38,10 +38,14 @@ module.exports.addPosts = ({body: {url = null, description = null, tags = null},
 module.exports.getPostByID = ({params: id = null}, res) => {
     const getPostObservable = post.getPostByID(id);
     getPostObservable.subscribe(
-        post => res.status(200).json({
-            error: false,
-            data: post
-        }),
+        next => {
+            let [post, user] = next
+            post.user_info = user
+            res.status(200).json({
+                error: false,
+                data: post
+            })
+        },
         err => {
             console.error(err);
             res.status(404).json({

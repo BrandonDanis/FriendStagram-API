@@ -1,4 +1,4 @@
 SERVICE = backend
 
 build:
-	docker build -t friendstagram/$(SERVICE) .
+	sudo docker build -t friendstagram/$(SERVICE) .

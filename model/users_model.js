@@ -128,33 +128,14 @@ module.exports.comparePasswordbyID = (id, password, callback) => {
     });
 }
 
-module.exports.login = (username, password) => {
-    return Rx.Observable.create((observer => {
-        db.select(['username', 'password']).from('users').where({username}).row((err, row) => {
-            if (err)
-                observer.onError(err);
-            else
-                observer.onNext(row.password);
-            observer.onCompleted();
-        })
-    })).flatMap(hashedPassword => {
-        return Rx.Observable.create(observer => {
-            bcrypt.compare(password, hashedPassword, (err, res) => {
-                if (err || !res) {
-                    observer.onError('An error occurred. Please log in again!');
-                    observer.onCompleted();
-                } else {
-                    db.raw('INSERT INTO users_sessions VALUES($1, (SELECT id FROM users WHERE username = $2)) RETURNING *;', [uuid.v4(), username]).row((err, row) => {
-                        if (err)
-                            observer.onError(err);
-                        else
-                            observer.onNext(row);
-                        observer.onCompleted();
-                    });
-                }
-            });
-        });
-    });
+module.exports.login = async (username, password) => {
+    const possibleUser = await db.select(['username', 'password']).from('users').where({username}).row()
+    const validPssd = await bcrypt.compare(password, possibleUser.password)
+
+    if(!validPssd)
+        throw new Error('Invalid password')
+
+    return db.raw('INSERT INTO users_sessions VALUES($1, (SELECT id FROM users WHERE username = $2)) RETURNING *;', [uuid.v4(), username]).row()
 }
 
 module.exports.changePassword = (id, password, newPassword, callback) => {

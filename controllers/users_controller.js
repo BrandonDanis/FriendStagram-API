@@ -91,7 +91,7 @@ module.exports.findUser = ({params: {username = null}}, res) => {
     )
 }
 
-module.exports.login = ({body: {username = null, password = null}}, res) => {
+module.exports.login = async ({body: {username = null, password = null}}, res) => {
     let errorMessage = '';
 
     if (utils.isEmpty(username)) {
@@ -107,29 +107,14 @@ module.exports.login = ({body: {username = null, password = null}}, res) => {
             data: errorMessage
         });
     } else {
-        //check cache here
-        const observable = user.login(username, password);
-
-        observable.subscribe(
-            next => {
-                const payload = {
-                    id: next.user_id,
-                    timestamp: new Date(),
-                    uuid: next.id
-                };
-                const token = jwt.encode(payload, cfg.jwtSecret);
-                res.status(200).json({
-                    error: false,
-                    data: token
-                })
-            },
-            () => {
-                res.status(404).json({
-                    error: true,
-                    data: 'Username and Password combination does not exist'
-                })
-            }
-        )
+        try{
+            const token = await user.login(username, password)
+            console.log(token);
+            res.status(200).json({error: false, data: token})
+        } catch (e) { //TODO: better error handling
+            console.log(e);
+            return res.status(500).json({error: true})
+        }
     }
 }
 

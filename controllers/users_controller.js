@@ -19,25 +19,25 @@ module.exports.findAllUsers = (req, res) => {
 }
 
 module.exports.register = async ({body: {username = null, password = null, email = null, name = null}}, res) => {
-    let errorMessage = '';
+    let errors = '';
 
     if (utils.isEmpty(username)) {
-        errorMessage += 'Username is Null\n'
+        errors.push('Username is null')
     }
     if (utils.isEmpty(password)) {
-        errorMessage += 'Password is Null\n'
+        errors.push('Password is null')
     }
     if (utils.isEmpty(email)) {
-        errorMessage += 'Email is Null\n'
+        errors.push('Email is null')
     }
     if (utils.isEmpty(name)) {
-        errorMessage += 'Name is Null\n'
+        errors.push('Name is null')
     }
 
-    if (!utils.isEmpty(errorMessage)) {
+    if (!utils.isEmpty(errors)) {
         res.status(401).json({
             error: true,
-            data: errorMessage
+            data: errors
         })
     }
     else {
@@ -92,19 +92,19 @@ module.exports.findUser = ({params: {username = null}}, res) => {
 }
 
 module.exports.login = async ({body: {username = null, password = null}}, res) => {
-    let errorMessage = '';
+    let errors = [];
 
     if (utils.isEmpty(username)) {
-        errorMessage += 'Username is Null\n'
+        errors.push('Username is null')
     }
     if (utils.isEmpty(password)) {
-        errorMessage += 'Password is Null\n'
+        errors.push('Password is null')
     }
 
-    if (!utils.isEmpty(errorMessage)) {
-        res.status(401).json({
+    if (!utils.isEmpty(errors)) {
+        return res.status(401).json({
             error: true,
-            data: errorMessage
+            data: errors
         });
     } else {
         try{

@@ -3,19 +3,17 @@ const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')
 
-module.exports.findAllUsers = (req, res) => {
-    user.findAllUsers().subscribe(
-        users =>
-            res.status(200).json({
-                error: false,
-                users: users
-            }),
-        err =>
-            res.status(404).json({
-                error: true,
-                users: []
-            })
-    )
+module.exports.findAllUsers = async (req, res) => {
+    try {
+        const users = await user.findAllUsers()
+        res.status(200).json({
+            error: false,
+            data: users
+        })
+    }catch (e) {
+        console.log(e);
+        return res.status(500).json({error: true});
+    }
 }
 
 module.exports.register = async ({body: {username = null, password = null, email = null, name = null}}, res) => {

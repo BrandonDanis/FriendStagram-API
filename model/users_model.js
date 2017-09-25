@@ -84,15 +84,7 @@ module.exports.findUser = (username) => {
 };
 
 module.exports.findAllUsers = () => {
-    return Rx.Observable.create(observer => {
-        db.select(['id', 'name', 'datecreated', 'email', 'description']).from('users').rows((err, rows) => {
-            if (err)
-                observer.onError(err);
-            else
-                observer.onNext(rows);
-            observer.onCompleted();
-        });
-    });
+    return db.select(['id', 'name', 'datecreated', 'email', 'description']).from('users').rows();
 }
 
 module.exports.authenticate = (id, uuid) => {

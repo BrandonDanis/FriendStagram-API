@@ -59,34 +59,36 @@ module.exports.register = async ({body: {username = null, password = null, email
     }
 }
 
-module.exports.findUser = ({params: {username = null}}, res) => {
-    const observable = user.findUser(username);
-    observable.subscribe(
-        next => {
-            let [user, posts, followers, following] = next;
-            posts.map(post => {
-                post.user = {
-                    username: user.username,
-                    profile_picture_url: user.profile_picture_url,
-                    name: user.name
-                };
-                return post;
-            });
-            user.posts = posts;
-            user.followers = followers;
-            user.following = following;
-            res.status(202).json({
-                error: false,
-                data: user
-            })
-        },
-        err => {
-            res.status(400).json({
+module.exports.findUser = async ({params: {username = null}}, res) => {
+    try{
+        const [userInfo, postInfo = [], followersInfo = [], followingInfo = []] = await user.findUser(username)
+        postInfo.map(post => {
+            post.user = {
+                username: user.username,
+                profile_picture_url: user.profile_picture_url,
+                name: user.name
+            };
+            return post;
+        });
+        userInfo.posts = postInfo
+        userInfo.followers = followersInfo
+        userInfo.following = followingInfo
+        res.status(202).json({
+            error: false,
+            data: userInfo
+        })
+    }catch (e) {
+        if(e.message === 'Expected a row, none found'){ //user not found
+            return res.status(404).json({
                 error: true,
-                data: err
+                data: 'User not found'
             })
         }
-    )
+        res.status(500).json({
+            error: true,
+            data: e
+        })
+    }
 }
 
 module.exports.login = async ({body: {username = null, password = null}}, res) => {

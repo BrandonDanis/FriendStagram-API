@@ -65,13 +65,9 @@ module.exports.authenticate = (id, uuid) => {
     return Rx.Observable.forkJoin(getUserObservable, getUserSessionsObservable);
 }
 
-module.exports.comparePasswordbyID = (id, password, callback) => {
-    db.select(['password']).from('users').where({id}).row((err, row) => {
-        if (err)
-            callback(true);
-        else
-            bcrypt.compare(password, row.password, callback);
-    });
+module.exports.comparePasswordbyID = async (id, password, callback) => {
+    const row = await db.select(['password']).from('users').where({id}).row()
+    return bcrypt.compare(password, row.password);
 }
 
 module.exports.login = async (username, password) => {
@@ -84,24 +80,15 @@ module.exports.login = async (username, password) => {
     return db.raw('INSERT INTO users_sessions VALUES($1, (SELECT id FROM users WHERE username = $2)) RETURNING *;', [uuid.v4(), username]).row()
 }
 
-module.exports.changePassword = (id, password, newPassword, callback) => {
-    module.exports.comparePasswordbyID(id, password, (err, ok) => {
-        if (ok) {
-            const salt = bcrypt.genSaltSync(saltRounds);
-            bcrypt.hash(newPassword, salt, null, (err, hashedPassword) => {
-                if (err) {
-                    console.error(err);
-                    callback(true, 'An error occurred. Please try again')
-                } else {
-                    db.update('users').set('password', hashedPassword).where({id}).run(err => {
-                        callback(err);
-                    });
-                }
-            })
-        }
-        else
-            callback(true, 'Password Was Incorrect')
-    })
+module.exports.changePassword = async (id, password, newPassword, callback) => {
+    const passwordMatch = await module.exports.comparePasswordbyID(id, password)
+    if(!passwordMatch)
+        throw new Error('Invalid password')
+
+    const allTheSalt = await bcrypt.genSalt(saltRounds)
+    const hashedPassword = await bcrypt.hash(newPassword, allTheSalt, null)
+
+    return db.update('users').set('password', hashedPassword).where({id}).run();
 }
 
 module.exports.logOff = (id) => {

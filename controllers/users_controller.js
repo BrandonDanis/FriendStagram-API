@@ -17,7 +17,7 @@ module.exports.findAllUsers = async (req, res) => {
 }
 
 module.exports.register = async ({body: {username = null, password = null, email = null, name = null}}, res) => {
-    let errors = '';
+    let errors = [];
 
     if (utils.isEmpty(username)) {
         errors.push('Username is null')
@@ -123,26 +123,17 @@ module.exports.login = async ({body: {username = null, password = null}}, res) =
     }
 }
 
-module.exports.changeUser = ({body: {password = null}, user: {id = -1}}, res) => {
-    if (password !== null) {
-        user.changePassword(id, password.old, password.new, (err, ok) => {
-            if (err) {
-                return res.status(404).json({
-                    error: true,
-                    data: 'Wrong Password'
-                })
-            } else {
-                return res.status(200).json({
-                    error: null,
-                    data: 'Successfully Changed Password'
-                })
-            }
-        })
-    } else {
-        res.status(404).json({
-            error: true,
-            data: 'No Change Requested'
-        })
+module.exports.changeUser = async ({user: {id}, body: {old_password, new_password}}, res) => {
+    if(!id || !old_password || !new_password) //TODO: this is not very elegant and informative
+        return res.status(400).json({error: true, reason: 'Improper params'})
+
+    try {
+        const updataeUser = await user.changePassword(id, old_password, new_password)
+        res.status(200).send('Updated')
+    } catch(e) {
+        if(e.message === 'Invalid password')
+            return res.status(403).json({error: true, reason: e.message})
+        res.status(500).send(e.message)
     }
 }
 

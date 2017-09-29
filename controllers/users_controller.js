@@ -137,21 +137,19 @@ module.exports.changeUser = async ({user: {id}, body: {old_password, new_passwor
     }
 }
 
-module.exports.logOff = (req, res) => {
-    const logOffObservable = user.logOff(req.user.uuid);
-    logOffObservable.subscribe(
-        () => res.status(200).json({
-            error: false,
-            data: null
-        }),
-        err => {
-            console.error(err);
-            res.status(400).json({
-                error: true,
-                data: null
-            });
-        }
-    );
+module.exports.logOff = async (req, res) => {
+    try{
+        await user.logOff(req.user.uuid)
+        return res.status(200).json({error: false, data: null)
+    } catch (e) { console.error(e) }
+
+    res.status(500).json({
+        error: true,
+        data: null,
+        errors: [{
+            'Failed to logout'
+        }]
+    })
 }
 
 module.exports.logOffAllOtherSessions = (req, res) => {

@@ -82,15 +82,7 @@ module.exports.changePassword = async (id, password, newPassword, callback) => {
 }
 
 module.exports.logOff = (id) => {
-    return Rx.Observable.create(observer => {
-        db.delete('users_sessions').where({id}).run((err) => {
-            if (err)
-                observer.onError(err);
-            else
-                observer.onNext('');
-            observer.onCompleted();
-        })
-    });
+    return db.delete('users_sessions').where({id}).run()
 }
 
 module.exports.logOffAllOtherSessions = (id, requestedSession) => {

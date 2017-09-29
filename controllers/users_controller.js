@@ -108,8 +108,13 @@ module.exports.login = async ({body: {username = null, password = null}}, res) =
         });
     } else {
         try{
-            const token = await user.login(username, password)
-            console.log(token);
+            const loginData = await user.login(username, password)
+            const payload = {
+                 id: loginData.user_id,
+                 timestamp: new Date(),
+                 uuid: loginData.id
+            };
+            const token = jwt.encode(payload, cfg.jwtSecret);
             res.status(200).json({error: false, data: token})
         } catch (e) { //TODO: better error handling
             console.log(e);

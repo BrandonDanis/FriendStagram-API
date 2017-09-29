@@ -41,28 +41,18 @@ module.exports.findAllUsers = () => {
     return db.select(['id', 'username', 'name', 'datecreated', 'email', 'description']).from('users').rows();
 }
 
-module.exports.authenticate = (id, uuid) => {
-    const getUserObservable = Rx.Observable.create(observer => {
-        db.select('id').from('users').where({id}).row((err, row) => {
-            if (err)
-                observer.onError({error: err, table: 'users'});
-            else
-                observer.onNext(row);
-            observer.onCompleted();
-        });
-    });
+module.exports.authenticate = async (id, uuid) => {
+    try {
+        await db.select('id').from('users').where({id}).row()
+    } catch(e) {
+        throw new Error('User not found')
+    }
 
-    const getUserSessionsObservable = Rx.Observable.create(observer => {
-        db.select('id').from('users_sessions').where({'id': uuid}).row((err, row) => {
-            if (err)
-                observer.onError({error: err, table: 'users_sessions'});
-            else
-                observer.onNext(row);
-            observer.onCompleted();
-        });
-    });
-
-    return Rx.Observable.forkJoin(getUserObservable, getUserSessionsObservable);
+    try {
+        await db.select('id').from('users_sessions').where({'id': uuid}).row()
+    } catch(e) {
+        throw new Error('User not logged in')
+    }
 }
 
 module.exports.comparePasswordbyID = async (id, password, callback) => {

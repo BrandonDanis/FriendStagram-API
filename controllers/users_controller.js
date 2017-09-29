@@ -11,13 +11,13 @@ module.exports.findAllUsers = async (req, res) => {
             data: users
         })
     }catch (e) {
-        console.log(e);
-        return res.status(500).json({error: true});
+        console.log(e)
+        return res.status(500).json({error: true})
     }
 }
 
 module.exports.register = async ({body: {username = null, password = null, email = null, name = null}}, res) => {
-    let errors = [];
+    let errors = []
 
     if (utils.isEmpty(username)) {
         errors.push('Username is null')
@@ -52,8 +52,8 @@ module.exports.register = async ({body: {username = null, password = null, email
                     msg: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`
                 })
             }else{
-                console.log(e);
-                return res.status(500).json({error: true});
+                console.log(e)
+                return res.status(500).json({error: true})
             }
         }
     }
@@ -67,9 +67,9 @@ module.exports.findUser = async ({params: {username = null}}, res) => {
                 username: user.username,
                 profile_picture_url: user.profile_picture_url,
                 name: user.name
-            };
-            return post;
-        });
+            }
+            return post
+        })
         userInfo.posts = postInfo
         userInfo.followers = followersInfo
         userInfo.following = followingInfo
@@ -92,7 +92,7 @@ module.exports.findUser = async ({params: {username = null}}, res) => {
 }
 
 module.exports.login = async ({body: {username = null, password = null}}, res) => {
-    let errors = [];
+    let errors = []
 
     if (utils.isEmpty(username)) {
         errors.push('Username is null')
@@ -105,7 +105,7 @@ module.exports.login = async ({body: {username = null, password = null}}, res) =
         return res.status(401).json({
             error: true,
             data: errors
-        });
+        })
     } else {
         try{
             const loginData = await user.login(username, password)
@@ -113,11 +113,11 @@ module.exports.login = async ({body: {username = null, password = null}}, res) =
                  id: loginData.user_id,
                  timestamp: new Date(),
                  uuid: loginData.id
-            };
-            const token = jwt.encode(payload, cfg.jwtSecret);
+            }
+            const token = jwt.encode(payload, cfg.jwtSecret)
             res.status(200).json({error: false, data: token})
         } catch (e) { //TODO: better error handling
-            console.log(e);
+            console.log(e)
             return res.status(500).json({error: true})
         }
     }
@@ -187,38 +187,32 @@ module.exports.delete = async (req, res) => {
     }
 }
 
-module.exports.updateProfilePicture = ({user: {id = null}, body: {image_url = null} },res) => {
-    const updateProfilePictureObservable = user.updateProfilePicture(id, image_url)
-    updateProfilePictureObservable.subscribe(
-        () => {
-            res.status(200).json({
-                error: false,
-                data: 'Successfully update user profile'
-            })
-        },
-        err => {
-            res.status(500).json({
-                error: true,
-                data: 'Failed to update user profile'
-            })
-        }
-    )
+module.exports.updateProfilePicture = async ({user: {id = null}, body: {image_url = null} },res) => {
+    try{
+        await user.updateProfilePicture(id, image_url)
+    } catch (e) {
+        return res.status(500).json({
+            error: true,
+            data: 'Failed to update user profile'
+        })
+    }
+    res.status(200).json({
+        error: false,
+        data: 'Successfully update user profile'
+    })
 }
 
-module.exports.updateBackgroundPicture = ({user: {id = null}, body: {image_url = null}},res) => {
-    const updateBackgroundPictureObservable = user.updateBackgroundPicture(id, image_url)
-    updateBackgroundPictureObservable.subscribe(
-        () => {
-            res.status(200).json({
-                error: false,
-                data: 'Successfully update user profile'
-            })
-        },
-        err => {
-            res.status(500).json({
-                error: true,
-                data: 'Failed to update user profile'
-            })
-        }
-    )
+module.exports.updateBackgroundPicture = async ({user: {id = null}, body: {image_url = null}},res) => {
+    try {
+        await user.updateBackgroundPicture(id, image_url)
+    } catch (e) {
+        return res.status(500).json({
+            error: true,
+            data: 'Failed to update user profile'
+        })
+    }
+    res.status(200).json({
+        error: false,
+        data: 'Successfully update user profile'
+    })
 }

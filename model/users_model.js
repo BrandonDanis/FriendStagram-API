@@ -9,7 +9,7 @@ module.exports.register = async (username, unHashedPassword, email, name) => {
     const allTheSalt = await bcrypt.genSalt(saltRounds)
     const password = await bcrypt.hash(unHashedPassword, allTheSalt, null)
     return db.insert('users', {username, password, email, name}).returning('*').row();
-};
+}
 
 module.exports.findUser = async (username) => {
     const userPromise = db.select(['name', 'username', 'datecreated', 'description', 'profile_picture_url', 'profile_background_url']).from('users').where({'username': username}).row()
@@ -35,7 +35,7 @@ module.exports.findUser = async (username) => {
     }
 
     return Promise.all([userPromise, postsPromise, followersPromise, followingPromise])
-};
+}
 
 module.exports.findAllUsers = () => {
     return db.select(['id', 'username', 'name', 'datecreated', 'email', 'description']).from('users').rows();
@@ -104,15 +104,7 @@ module.exports.logOffAllOtherSessions = (id, requestedSession) => {
 }*/
 
 module.exports.authorizedToDelete = (postID, id) => {
-    return Rx.Observable.create(observer => {
-        db.select('user_id').from('posts').where({'id': postID, 'user_id': id}).row((err, row) => {
-            if (err)
-                observer.onError(err);
-            else
-                observer.onNext(row);
-            observer.onCompleted();
-        });
-    });
+    db.select('user_id').from('posts').where({'id': postID, 'user_id': id}).row();
 }
 
 /*module.exports.removePost = (post, _id, callback) => {
@@ -124,27 +116,9 @@ module.exports.delete = (id) => {
 }
 
 module.exports.updateProfilePicture = (userId, image_url) => {
-    return Rx.Observable.create(observer => {
-        db.update('users', {profile_picture_url: image_url}).where('id', userId).run((err) => {
-            if(err){
-                observer.onError(err)
-            }else{
-                observer.onNext()
-            }
-            observer.onCompleted()
-        })
-    })
+    return db.update('users', {profile_picture_url: image_url}).where('id', userId).run()
 }
 
 module.exports.updateBackgroundPicture = (userId, image_url) => {
-    return Rx.Observable.create(observer => {
-        db.update('users', {profile_background_url: image_url}).where('id', userId).run((err) => {
-            if(err){
-                observer.onError(err)
-            }else{
-                observer.onNext()
-            }
-            observer.onCompleted()
-        })
-    })
+    return db.update('users', {profile_background_url: image_url}).where('id', userId).run()
 }

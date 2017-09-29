@@ -86,15 +86,7 @@ module.exports.logOff = (id) => {
 }
 
 module.exports.logOffAllOtherSessions = (id, requestedSession) => {
-    return Rx.Observable.create(observer => {
-        db.raw('DELETE FROM users_sessions WHERE id NOT IN ($1) AND user_id = $2', [requestedSession, id]).run(err => {
-            if (err)
-                observer.onError(err);
-            else
-                observer.onNext('');
-            observer.onCompleted();
-        });
-    });
+    return db.raw('DELETE FROM users_sessions WHERE id NOT IN ($1) AND user_id = $2', [requestedSession, id]).run()
 }
 
 //POST METHODS
@@ -128,15 +120,7 @@ module.exports.authorizedToDelete = (postID, id) => {
 }*/
 
 module.exports.delete = (id) => {
-    return Rx.Observable.create(observer => {
-        db.delete().from('users').where({id}).run(err => {
-            if (err)
-                observer.onError(err);
-            else
-                observer.onNext('');
-            observer.onCompleted();
-        });
-    });
+    return db.delete().from('users').where({id}).run()
 }
 
 module.exports.updateProfilePicture = (userId, image_url) => {

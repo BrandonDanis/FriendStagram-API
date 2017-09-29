@@ -140,61 +140,51 @@ module.exports.changeUser = async ({user: {id}, body: {old_password, new_passwor
 module.exports.logOff = async (req, res) => {
     try{
         await user.logOff(req.user.uuid)
-        return res.status(200).json({error: false, data: null)
+        return res.status(200).json({error: false, data: null})
     } catch (e) { console.error(e) }
 
     res.status(500).json({
         error: true,
         data: null,
         errors: [{
-            'Failed to logout'
+            'info': 'Failed to logout'
         }]
     })
 }
 
-module.exports.logOffAllOtherSessions = (req, res) => {
-    const logOffObservable = user.logOffAllOtherSessions(req.user.id, req.user.uuid);
-    logOffObservable.subscribe(
-        () => res.status(200).json({
+module.exports.logOffAllOtherSessions = async (req, res) => {
+    try{
+        await user.logOffAllOtherSessions(req.user.id, req.user.uuid)
+    } catch(e) {
+        return res.status(200).json({
             error: false,
             data: null
-        }),
-        err => {
-            console.error(err);
-            res.status(400).json({
-                error: true,
-                data: null
-            })
-        }
-    )
+        })
+    }
+
+    res.status(400).json({
+        error: true,
+        data: null
+    })
 }
 
-module.exports.delete = (req, res) => {
-    user.comparePasswordbyID(req.user.id, req.body.password, (err, ok) => {
-        if (ok) {
-            const deleteUserObservable = user.delete(req.user.id);
-            deleteUserObservable.subscribe(
-                () => {
-                    res.status(200).json({
-                        error: true,
-                        data: 'Successfully deleted user'
-                    })
-                },
-                err => {
-                    console.error(err);
-                    res.status(500).json({
-                        error: true,
-                        data: null
-                    })
-                }
-            )
-        }
-        else
-            res.status(403).json({
-                error: true,
-                data: "Password Was Incorrect"
-            })
-    })
+module.exports.delete = async (req, res) => {
+    const passwordMatch = await user.comparePasswordbyID(req.user.id, req.body.password)
+    if(!passwordMatch)
+        throw new Error('Invalid password')
+
+    try{
+        await user.delete(req.user.id)
+        return res.status(200).json({
+            error: true,
+            data: 'Successfully deleted user'
+        })
+    } catch (e) {
+        res.status(500).json({
+            error: true,
+            data: null
+        })
+    }
 }
 
 module.exports.updateProfilePicture = ({user: {id = null}, body: {image_url = null} },res) => {

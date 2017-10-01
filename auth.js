@@ -35,36 +35,21 @@ module.exports.authenticate = async (req, res, next) => {
     }
 }
 
-module.exports.authorizedToDelete = (req, res, next) => {
-    const deleteAuthorizationObservable = user.authorizedToDelete(req.body.post, req.user.id);
-    deleteAuthorizationObservable.subscribe(
-        () => next(),
-        err => {
-            console.error(err);
-            if (err.message.indexOf('Expected a row') > -1)
-                res.status(401).json({
-                    error: true,
-                    data: 'User does not have right to delete this post'
-                });
-            else
-                res.status(500).json({
-                    error: true,
-                    data: null
-                });
-        }
-    );
-    /*, (err, authorized) => {
-        if (err) {
-            return res.status(500).json({
-                error: true,
-                data: 'Database Error'
-            })
-        } else if (!authorized) {
-            return res.status(401).json({
+module.exports.authorizedToDelete = async (req, res, next) => {
+    try{
+        await user.authorizedToDelete(req.body.post, req.user.id)
+        next()
+    } catch (e) {
+        if (e.message.indexOf('Expected a row') > -1)
+            res.status(401).json({
                 error: true,
                 data: 'User does not have right to delete this post'
             })
+        else {
+            res.status(500).json({
+                error: true,
+                data: null
+            })
         }
-        next()
-    })*/
-};
+    }
+}

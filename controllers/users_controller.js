@@ -84,6 +84,7 @@ module.exports.findUser = async ({params: {username = null}}, res) => {
                 data: 'User not found'
             })
         }
+        console.error(e);
         res.status(500).json({
             error: true,
             data: e

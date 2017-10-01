@@ -25,13 +25,13 @@ module.exports.findUser = async (username) => {
     var followersPromise
     if(followerIDs.length !== 0){
         const params = followerIDs.map((id, index) => `\$${index + 1}`).join(', ')
-        followersPromise = db.raw(`SELECT username FROM users WHERE id IN (${params})`, followerIDs).rows()
+        followersPromise = db.raw(`SELECT username FROM users WHERE id IN (${params})`, followerIDs.map(row => row.follower)).rows()
     }
 
     var followingPromise
-    if(followerIDs.length !== 0){
-        const params = followerIDs.map((id, index) => `\$${index + 1}`).join(', ')
-        followingPromise = db.raw(`SELECT username FROM users WHERE id IN (${params})`, followingIDs).rows()
+    if(followingIDs.length !== 0){
+        const params = followingIDs.map((id, index) => `\$${index + 1}`).join(', ')
+        followingPromise = db.raw(`SELECT username FROM users WHERE id IN (${params})`, followingIDs.map(row => row.following)).rows()
     }
 
     return Promise.all([userPromise, postsPromise, followersPromise, followingPromise])

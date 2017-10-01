@@ -6,3 +6,5 @@ services:
 before_script:
   - createdb travis;
   - psql travis -f Database/db.sql
+after_success:
+  - npm run coveralls

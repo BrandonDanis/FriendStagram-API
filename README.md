@@ -39,17 +39,15 @@ DELETE /follow //Unfollows a user. Authenticated
 - Image hosting using Cloudinary
 
 ## Setup
+1. Install [Docker](https://www.docker.com/) at your machine.
+2. Pull the latest code
+3. Build a friendstagram into a docker image
+```
+make build
+```
+4. Run
+```
+docker-compose -f docker-compose.yml up -d friendstagram
+```
 
-#### Environment Variables
-* DB_URL = your database url
-* TEST_DB_URL = your test database url
-* SECRET_KEY = any string of your choice
 
-#### Instructions
-* Clone repo
-* Instal latest version of Node and run 'npm install' to install all npm modules
-* Install PostgreSQL, create a database and use the schema provided in the repo (database/db.sql)
-* * You can also setup a test database with the same schema but a different database name
-* Populate the environment variables needed
-* Run 'npm test' to ensure you have correctly setup your Environment
-* Start the api by running 'npm start'

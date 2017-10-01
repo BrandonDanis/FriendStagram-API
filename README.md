@@ -1,5 +1,6 @@
 # FriendStagram API
-<img src="https://travis-ci.org/BrandonDanis/FriendStagram-API.svg?branch=master"></img><br>
+<img src="https://travis-ci.org/BrandonDanis/FriendStagram-API.svg?branch=master"></img>
+[![Coverage Status](https://coveralls.io/repos/github/BrandonDanis/FriendStagram-API/badge.svg?branch=master)](https://coveralls.io/github/BrandonDanis/FriendStagram-API?branch=master)<br>
 Backend server for FriendStagram. Written with Javascript, Node.js & Postgres.
 
 ## Endpoints

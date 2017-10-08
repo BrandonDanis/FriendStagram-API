@@ -3,32 +3,29 @@ const jwt = require('jwt-simple')
 const user = require('./model/users_model')
 
 
-module.exports.authenticate = (req, res, next) => {
+module.exports.authenticate = async (req, res, next) => {
     const token = req.get('token');
     try {
         const {id, uuid} = jwt.decode(token, cfg.jwtSecret);
-        const authObservable = user.authenticate(id, uuid);
-        authObservable.subscribe(
-            () => {
-                req.user = {id, uuid};
-                next()
-            },
-            err => {
-                console.error(err.error);
-                switch (err.table) {
-                    case 'users':
-                        return res.status(404).json({
-                            error: true,
-                            data: 'User not found'
-                        });
-                    case 'users_sessions':
-                        return res.status(412).json({
-                            error: true,
-                            data: 'User not logged in'
-                        });
-                }
+
+        try{
+            await user.authenticate(id, uuid)
+            req.user = {id, uuid};
+            next()
+        } catch (e) {
+            switch (e.message) {
+                case 'User not found':
+                    return res.status(404).json({
+                        error: true,
+                        data: 'User not found'
+                    });
+                case 'User not logged in':
+                    return res.status(412).json({
+                        error: true,
+                        data: 'User not logged in'
+                });
             }
-        )
+        }
     }
     catch (e) {
         return res.status(401).json({
@@ -38,36 +35,21 @@ module.exports.authenticate = (req, res, next) => {
     }
 }
 
-module.exports.authorizedToDelete = (req, res, next) => {
-    const deleteAuthorizationObservable = user.authorizedToDelete(req.body.post, req.user.id);
-    deleteAuthorizationObservable.subscribe(
-        () => next(),
-        err => {
-            console.error(err);
-            if (err.message.indexOf('Expected a row') > -1)
-                res.status(401).json({
-                    error: true,
-                    data: 'User does not have right to delete this post'
-                });
-            else
-                res.status(500).json({
-                    error: true,
-                    data: null
-                });
-        }
-    );
-    /*, (err, authorized) => {
-        if (err) {
-            return res.status(500).json({
-                error: true,
-                data: 'Database Error'
-            })
-        } else if (!authorized) {
-            return res.status(401).json({
+module.exports.authorizedToDelete = async (req, res, next) => {
+    try{
+        await user.authorizedToDelete(req.body.post, req.user.id)
+        next()
+    } catch (e) {
+        if (e.message.indexOf('Expected a row') > -1)
+            res.status(401).json({
                 error: true,
                 data: 'User does not have right to delete this post'
             })
+        else {
+            res.status(500).json({
+                error: true,
+                data: null
+            })
         }
-        next()
-    })*/
-};
+    }
+}

@@ -3,253 +3,217 @@ const utils = require('../utils/util')
 const jwt = require('jwt-simple')
 const cfg = require('../config')
 
-module.exports.findAllUsers = (req, res) => {
-    user.findAllUsers().subscribe(
-        users =>
-            res.status(200).json({
-                error: false,
-                users: users
-            }),
-        err =>
-            res.status(404).json({
-                error: true,
-                users: []
-            })
-    )
+module.exports.findAllUsers = async (req, res) => {
+    try {
+        const users = await user.findAllUsers()
+        res.status(200).json({
+            error: false,
+            data: users
+        })
+    }catch (e) {
+        console.log(e)
+        return res.status(500).json({error: true})
+    }
 }
 
-module.exports.register = ({body: {username = null, password = null, email = null, name = null}}, res) => {
-    let errorMessage = '';
+module.exports.register = async ({body: {username = null, password = null, email = null, name = null}}, res) => {
+    let errors = []
 
     if (utils.isEmpty(username)) {
-        errorMessage += 'Username is Null\n'
+        errors.push('Username is null')
     }
     if (utils.isEmpty(password)) {
-        errorMessage += 'Password is Null\n'
+        errors.push('Password is null')
     }
     if (utils.isEmpty(email)) {
-        errorMessage += 'Email is Null\n'
+        errors.push('Email is null')
     }
     if (utils.isEmpty(name)) {
-        errorMessage += 'Name is Null\n'
+        errors.push('Name is null')
     }
 
-    if (!utils.isEmpty(errorMessage)) {
+    if (!utils.isEmpty(errors)) {
         res.status(401).json({
             error: true,
-            data: errorMessage
+            data: errors
         })
     }
     else {
-        user.register(username, password, email, name).subscribe(
-            id =>
-                res.status(201).json({
-                    error: false,
-                    data: id
-                }),
-            err => {
-                let message = '';
-                //noinspection EqualityComparisonWithCoercionJS
-                if (err.code == 23505) {
-                    message = `${utils.capitalize(err.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`;
-                }
-                res.status(500).json({
-                    error: true,
-                    data: message
-                })
+        try {
+            const {id, datecreated} = await user.register(username, password, email, name)
+            res.status(201).json({
+                error: false,
+                data: {name, username, email, datecreated, id}
             })
+        }catch (e) {
+            if(e.code === '23505'){
+                return res.status(409).json({
+                    error: true,
+                    msg: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`
+                })
+            }else{
+                console.log(e)
+                return res.status(500).json({error: true})
+            }
+        }
     }
 }
 
-module.exports.findUser = ({params: {username = null}}, res) => {
-    const observable = user.findUser(username);
-    observable.subscribe(
-        next => {
-            let [user, posts, followers, following] = next;
-            posts.map(post => {
-                post.user = {
-                    username: user.username,
-                    profile_picture_url: user.profile_picture_url,
-                    name: user.name
-                };
-                return post;
-            });
-            user.posts = posts;
-            user.followers = followers;
-            user.following = following;
-            res.status(202).json({
-                error: false,
-                data: user
-            })
-        },
-        err => {
-            res.status(400).json({
+module.exports.findUser = async ({params: {username = null}}, res) => {
+    try{
+        const [userInfo, postInfo = [], followersInfo = [], followingInfo = []] = await user.findUser(username)
+        postInfo.map(post => {
+            post.user = {
+                username: user.username,
+                profile_picture_url: user.profile_picture_url,
+                name: user.name
+            }
+            return post
+        })
+        userInfo.posts = postInfo
+        userInfo.followers = followersInfo
+        userInfo.following = followingInfo
+        res.status(202).json({
+            error: false,
+            data: userInfo
+        })
+    }catch (e) {
+        if(e.message === 'Expected a row, none found'){ //user not found
+            return res.status(404).json({
                 error: true,
-                data: err
+                data: 'User not found'
             })
         }
-    )
+        console.error(e);
+        res.status(500).json({
+            error: true,
+            data: e
+        })
+    }
 }
 
-module.exports.login = ({body: {username = null, password = null}}, res) => {
-    let errorMessage = '';
+module.exports.login = async ({body: {username = null, password = null}}, res) => {
+    let errors = []
 
     if (utils.isEmpty(username)) {
-        errorMessage += 'Username is Null\n'
+        errors.push('Username is null')
     }
     if (utils.isEmpty(password)) {
-        errorMessage += 'Password is Null\n'
+        errors.push('Password is null')
     }
 
-    if (!utils.isEmpty(errorMessage)) {
-        res.status(401).json({
+    if (!utils.isEmpty(errors)) {
+        return res.status(401).json({
             error: true,
-            data: errorMessage
-        });
-    } else {
-        //check cache here
-        const observable = user.login(username, password);
-
-        observable.subscribe(
-            next => {
-                const payload = {
-                    id: next.user_id,
-                    timestamp: new Date(),
-                    uuid: next.id
-                };
-                const token = jwt.encode(payload, cfg.jwtSecret);
-                res.status(200).json({
-                    error: false,
-                    data: token
-                })
-            },
-            () => {
-                res.status(404).json({
-                    error: true,
-                    data: 'Username and Password combination does not exist'
-                })
-            }
-        )
-    }
-}
-
-module.exports.changeUser = ({body: {password = null}, user: {id = -1}}, res) => {
-    if (password !== null) {
-        user.changePassword(id, password.old, password.new, (err, ok) => {
-            if (err) {
-                return res.status(404).json({
-                    error: true,
-                    data: 'Wrong Password'
-                })
-            } else {
-                return res.status(200).json({
-                    error: null,
-                    data: 'Successfully Changed Password'
-                })
-            }
+            data: errors
         })
     } else {
-        res.status(404).json({
-            error: true,
-            data: 'No Change Requested'
-        })
+        try{
+            const loginData = await user.login(username, password)
+            const payload = {
+                 id: loginData.user_id,
+                 timestamp: new Date(),
+                 uuid: loginData.id
+            }
+            const token = jwt.encode(payload, cfg.jwtSecret)
+            res.status(200).json({error: false, data: token})
+        } catch (e) { //TODO: better error handling
+            console.log(e)
+            return res.status(500).json({error: true})
+        }
     }
 }
 
-module.exports.logOff = (req, res) => {
-    const logOffObservable = user.logOff(req.user.uuid);
-    logOffObservable.subscribe(
-        () => res.status(200).json({
-            error: false,
-            data: null
-        }),
-        err => {
-            console.error(err);
-            res.status(400).json({
-                error: true,
-                data: null
-            });
-        }
-    );
+module.exports.changeUser = async ({user: {id}, body: {old_password, new_password}}, res) => {
+    if(!id || !old_password || !new_password) //TODO: this is not very elegant and informative
+        return res.status(400).json({error: true, reason: 'Improper params'})
+
+    try {
+        const updataeUser = await user.changePassword(id, old_password, new_password)
+        res.status(200).send('Updated')
+    } catch(e) {
+        if(e.message === 'Invalid password')
+            return res.status(403).json({error: true, reason: e.message})
+        res.status(500).send(e.message)
+    }
 }
 
-module.exports.logOffAllOtherSessions = (req, res) => {
-    const logOffObservable = user.logOffAllOtherSessions(req.user.id, req.user.uuid);
-    logOffObservable.subscribe(
-        () => res.status(200).json({
-            error: false,
-            data: null
-        }),
-        err => {
-            console.error(err);
-            res.status(400).json({
-                error: true,
-                data: null
-            })
-        }
-    )
-}
+module.exports.logOff = async (req, res) => {
+    try{
+        await user.logOff(req.user.uuid)
+        return res.status(200).json({error: false, data: null})
+    } catch (e) { console.error(e) }
 
-module.exports.delete = (req, res) => {
-    user.comparePasswordbyID(req.user.id, req.body.password, (err, ok) => {
-        if (ok) {
-            const deleteUserObservable = user.delete(req.user.id);
-            deleteUserObservable.subscribe(
-                () => {
-                    res.status(200).json({
-                        error: true,
-                        data: 'Successfully deleted user'
-                    })
-                },
-                err => {
-                    console.error(err);
-                    res.status(500).json({
-                        error: true,
-                        data: null
-                    })
-                }
-            )
-        }
-        else
-            res.status(403).json({
-                error: true,
-                data: "Password Was Incorrect"
-            })
+    res.status(500).json({
+        error: true,
+        data: null,
+        errors: [{
+            'info': 'Failed to logout'
+        }]
     })
 }
 
-module.exports.updateProfilePicture = ({user: {id = null}, body: {image_url = null} },res) => {
-    const updateProfilePictureObservable = user.updateProfilePicture(id, image_url)
-    updateProfilePictureObservable.subscribe(
-        () => {
-            res.status(200).json({
-                error: false,
-                data: 'Successfully update user profile'
-            })
-        },
-        err => {
-            res.status(500).json({
-                error: true,
-                data: 'Failed to update user profile'
-            })
-        }
-    )
+module.exports.logOffAllOtherSessions = async (req, res) => {
+    try{
+        await user.logOffAllOtherSessions(req.user.id, req.user.uuid)
+    } catch(e) {
+        return res.status(200).json({
+            error: false,
+            data: null
+        })
+    }
+
+    res.status(400).json({
+        error: true,
+        data: null
+    })
 }
 
-module.exports.updateBackgroundPicture = ({user: {id = null}, body: {image_url = null}},res) => {
-    const updateBackgroundPictureObservable = user.updateBackgroundPicture(id, image_url)
-    updateBackgroundPictureObservable.subscribe(
-        () => {
-            res.status(200).json({
-                error: false,
-                data: 'Successfully update user profile'
-            })
-        },
-        err => {
-            res.status(500).json({
-                error: true,
-                data: 'Failed to update user profile'
-            })
-        }
-    )
+module.exports.delete = async (req, res) => {
+    const passwordMatch = await user.comparePasswordbyID(req.user.id, req.body.password)
+    if(!passwordMatch)
+        throw new Error('Invalid password')
+
+    try{
+        await user.delete(req.user.id)
+        return res.status(200).json({
+            error: true,
+            data: 'Successfully deleted user'
+        })
+    } catch (e) {
+        res.status(500).json({
+            error: true,
+            data: null
+        })
+    }
+}
+
+module.exports.updateProfilePicture = async ({user: {id = null}, body: {image_url = null} },res) => {
+    try{
+        await user.updateProfilePicture(id, image_url)
+    } catch (e) {
+        return res.status(500).json({
+            error: true,
+            data: 'Failed to update user profile'
+        })
+    }
+    res.status(200).json({
+        error: false,
+        data: 'Successfully update user profile'
+    })
+}
+
+module.exports.updateBackgroundPicture = async ({user: {id = null}, body: {image_url = null}},res) => {
+    try {
+        await user.updateBackgroundPicture(id, image_url)
+    } catch (e) {
+        return res.status(500).json({
+            error: true,
+            data: 'Failed to update user profile'
+        })
+    }
+    res.status(200).json({
+        error: false,
+        data: 'Successfully update user profile'
+    })
 }

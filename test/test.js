@@ -820,7 +820,7 @@ AddInvalidUser = (user, callback) => {
         .post("/users/")
         .send(user)
         .end((err, res) => {
-            res.should.have.status(500)
+            res.should.have.status(409)
             res.body.should.be.a('object')
             res.body.should.have.property('error')
             res.body.should.have.property('error').eql(true)

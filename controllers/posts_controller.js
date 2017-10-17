@@ -2,7 +2,7 @@ const postModel = require('../model/posts_model');
 const utils = require('../utils/util');
 
 module.exports.addPosts = async ({ body: { url = null, description = null, tags = null }, user = null }, res) => {
-    const errors = [];
+    let errors = [];
 
     if (utils.isEmpty(user.id)) {
         errors.push('User ID is Null');
@@ -11,23 +11,27 @@ module.exports.addPosts = async ({ body: { url = null, description = null, tags 
         errors.push('URL is Null');
     }
 
-    if (errors.length > 0) {
+    if (!errors.isEmpty()) {
+        errors = errors.map(error => ({ title: error }));
         res.status(400).json({
-            error: true,
-            data: errors.join('\n'),
+            data: null,
+            errors,
+            meta: {},
         });
     } else {
         try {
             const post = await postModel.addPosts(description, url, tags, user.id);
             res.status(200).json({
-                error: false,
                 data: post,
+                errors: [],
+                meta: {},
             });
         } catch (e) {
             console.error(e);
             res.status(500).json({
-                error: true,
-                msg: 'Failed to create post',
+                data: null,
+                errors: [{ title: 'Failed to create post' }],
+                meta: {},
             });
         }
     }
@@ -38,14 +42,16 @@ module.exports.getPostByID = async ({ params: id = null }, res) => {
         const [post, user] = await postModel.getPostByID(id);
         post.user_info = user;
         res.status(200).json({
-            error: false,
             data: post,
+            errors: [],
+            meta: {},
         });
     } catch (e) {
         console.error(e);
         res.status(404).json({
-            error: true,
-            data: 'Failed to find post',
+            data: null,
+            errors: [{ title: 'Failed to find post' }],
+            meta: {},
         });
     }
 };
@@ -53,38 +59,40 @@ module.exports.getPostByID = async ({ params: id = null }, res) => {
 module.exports.search = async (req, res) => {
     let { page } = req.query;
     const { limit, sort, tags } = req.query;
+    const searchQuery = {};
 
     if (page) {
         page = Number(page);
-        req.query.offset = 0;
+        searchQuery.offset = 0;
         // eslint-disable-next-line no-restricted-globals
         if (!isNaN(page)) {
-            req.query.offset = Math.floor(page * limit);
+            searchQuery.offset = Math.floor(page * limit);
         }
-        delete req.query.page;
     }
 
     if (limit) {
-        req.query.limit = Number(limit);
+        searchQuery.limit = Number(limit);
     }
 
     if (tags) {
-        req.query.tags = tags instanceof Array ? tags : [tags];
+        searchQuery.tags = tags instanceof Array ? tags : [tags];
     }
 
-    req.query.sort = sort ? JSON.parse(sort) : {};
+    searchQuery.sort = sort ? JSON.parse(sort) : {};
 
     try {
-        const posts = await postModel.search(req.query);
+        const posts = await postModel.search(searchQuery);
         res.status(200).json({
-            error: false,
             data: posts,
+            errors: [],
+            meta: {},
         });
     } catch (e) {
         console.error(e);
         res.status(500).json({
-            error: true,
-            msg: 'Search failed',
+            data: null,
+            errors: [{ title: 'Failed to search for posts' }],
+            meta: {},
         });
     }
 };
@@ -93,14 +101,16 @@ module.exports.delete = async ({ body: { post = null } }, res) => {
     try {
         await postModel.delete(post);
         res.status(200).json({
-            error: false,
             data: null,
+            errors: [],
+            meta: {},
         });
     } catch (e) {
         console.error(e);
         res.status(404).json({
-            error: true,
-            msg: 'Failed to delete post',
+            data: null,
+            errors: [{ title: 'Failed to delete post' }],
+            meta: {},
         });
     }
 };

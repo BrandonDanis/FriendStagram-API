@@ -54,8 +54,8 @@ describe('Users', () => {
             .end((err, res) => {
                 res.should.have.status(401);
                 res.body.should.be.a('object');
-                res.body.should.have.property('error');
-                res.body.should.have.property('error').eql(true);
+                res.body.should.have.property('errors');
+                res.body.errors.should.have.property('length').eql(1);
                 done();
             });
     });
@@ -73,8 +73,8 @@ describe('Users', () => {
             .end((err, res) => {
                 res.should.have.status(401);
                 res.body.should.be.a('object');
-                res.body.should.have.property('error');
-                res.body.should.have.property('error').eql(true);
+                res.body.should.have.property('errors');
+                res.body.errors.length.should.be.eql(1);
                 done();
             });
     });
@@ -137,8 +137,8 @@ describe('Users', () => {
                 .end((err, res) => {
                     res.should.have.status(202);
                     res.body.should.be.a('object');
-                    res.body.should.have.property('error');
-                    res.body.should.have.property('error').eql(false);
+                    res.body.should.have.property('errors');
+                    res.body.errors.length.should.be.eql(0);
                     res.body.should.have.property('data');
                     res.body.data.should.have.property('name');
                     res.body.data.should.have.property('name').eql(`${user.name}`);
@@ -175,8 +175,8 @@ describe('Users', () => {
                 .end((err, res) => {
                     res.should.have.status(200);
                     res.body.should.be.a('object');
-                    res.body.should.have.property('error');
-                    res.body.should.have.property('error').eql(false);
+                    res.body.should.have.property('errors');
+                    res.body.errors.length.should.be.eql(0);
                     res.body.should.have.property('data');
                     res.body.data.should.be.a('string');
                     done();
@@ -203,17 +203,17 @@ describe('Users', () => {
                     .end((err, res) => {
                         res.should.have.status(200);
                         res.body.should.be.a('object');
-                        res.body.should.have.property('error');
-                        res.body.should.have.property('error').eql(false);
+                        res.body.should.have.property('errors');
+                        res.body.errors.length.should.be.eql(0);
                         res.body.should.have.property('data');
-                        res.body.should.have.property('data').eql('Successfully update user profile');
+                        res.body.should.have.property('data').eql('Successfully updated your user profile');
                         chai.request(server)
                             .get(`/users/${user.username}`)
                             .end((err, res) => {
                                 res.should.have.status(202);
                                 res.body.should.be.a('object');
-                                res.body.should.have.property('error');
-                                res.body.should.have.property('error').eql(false);
+                                res.body.should.have.property('errors');
+                                res.body.errors.length.should.be.eql(0);
                                 res.body.should.have.property('data');
                                 res.body.data.should.have.property('profile_picture_url');
                                 res.body.data.should.have.property('profile_picture_url').eql(image_url);
@@ -243,17 +243,17 @@ describe('Users', () => {
                     .end((err, res) => {
                         res.should.have.status(200);
                         res.body.should.be.a('object');
-                        res.body.should.have.property('error');
-                        res.body.should.have.property('error').eql(false);
+                        res.body.should.have.property('errors');
+                        res.body.errors.length.should.be.eql(0);
                         res.body.should.have.property('data');
-                        res.body.should.have.property('data').eql('Successfully update user profile');
+                        res.body.should.have.property('data').eql('Successfully updated your user profile');
                         chai.request(server)
                             .get(`/users/${user.username}`)
                             .end((err, res) => {
                                 res.should.have.status(202);
                                 res.body.should.be.a('object');
-                                res.body.should.have.property('error');
-                                res.body.should.have.property('error').eql(false);
+                                res.body.should.have.property('errors');
+                                res.body.errors.length.should.be.eql(0);
                                 res.body.should.have.property('data');
                                 res.body.data.should.have.property('profile_background_url');
                                 res.body.data.should.have.property('profile_background_url').eql(image_url);
@@ -278,8 +278,8 @@ describe('Posts', () => {
             .end((err, res) => {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.should.have.property('error');
-                res.body.should.have.property('error').eql(false);
+                res.body.should.have.property('errors');
+                res.body.errors.length.should.be.eql(0);
                 res.body.should.have.property('data');
                 res.body.data.should.be.a('array');
                 res.body.data.length.should.be.eql(0);
@@ -309,8 +309,8 @@ describe('Posts', () => {
                         .end((err, res) => {
                             res.should.have.status(200);
                             res.body.should.be.a('object');
-                            res.body.should.have.property('error');
-                            res.body.should.have.property('error').eql(false);
+                            res.body.should.have.property('errors');
+                            res.body.errors.length.should.be.eql(0);
                             res.body.should.have.property('data');
                             res.body.data.should.be.a('array');
                             res.body.data.length.should.be.eql(1);
@@ -350,10 +350,10 @@ describe('Posts', () => {
                     .end((err, res) => {
                         res.should.have.status(401);
                         res.body.should.be.a('object');
-                        res.body.should.have.property('error');
-                        res.body.should.have.property('error').eql(true);
-                        res.body.should.have.property('data');
-                        res.body.should.have.property('data').eql('bad token');
+                        res.body.should.have.property('errors');
+                        res.body.errors.length.should.be.eql(1);
+                        res.body.errors[0].should.have.property('title');
+                        res.body.errors[0].should.have.property('title').eql('Bad token');
                         done();
                     });
             });
@@ -382,8 +382,8 @@ describe('Posts', () => {
                         .end((err, res) => {
                             res.should.have.status(200);
                             res.body.should.be.a('object');
-                            res.body.should.have.property('error');
-                            res.body.should.have.property('error').eql(false);
+                            res.body.should.have.property('errors');
+                            res.body.errors.length.should.be.eql(0);
                             res.body.should.have.property('data');
                             res.body.data.should.have.property('description');
                             res.body.data.should.have.property('description').eql(post.description);
@@ -420,8 +420,8 @@ describe('Posts', () => {
                         .end((err, res) => {
                             res.should.have.status(200);
                             res.body.should.be.a('object');
-                            res.body.should.have.property('error');
-                            res.body.should.have.property('error').eql(false);
+                            res.body.should.have.property('errors');
+                            res.body.errors.length.should.be.eql(0);
                             res.body.should.have.property('data');
                             res.body.should.have.property('data').eql(null);
                             done();
@@ -454,10 +454,10 @@ describe('Posts', () => {
                         .end((err, res) => {
                             res.should.have.status(401);
                             res.body.should.be.a('object');
-                            res.body.should.have.property('error');
-                            res.body.should.have.property('error').eql(true);
-                            res.body.should.have.property('data');
-                            res.body.should.have.property('data').eql('bad token');
+                            res.body.should.have.property('errors');
+                            res.body.errors.length.should.be.eql(1);
+                            res.body.errors[0].should.have.property('title');
+                            res.body.errors[0].should.have.property('title').eql('Bad token');
                             done();
                         });
                 });
@@ -479,8 +479,8 @@ describe('Follow', () => {
             .end((err, res) => {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.should.have.property('error');
-                res.body.should.have.property('error').eql(false);
+                res.body.should.have.property('errors');
+                res.body.errors.length.should.be.eql(0);
                 res.body.should.have.property('data');
                 res.body.data.should.be.a('array');
                 res.body.data.length.should.be.eql(0);
@@ -494,8 +494,8 @@ describe('Follow', () => {
             .end((err, res) => {
                 res.should.have.status(200);
                 res.body.should.be.a('object');
-                res.body.should.have.property('error');
-                res.body.should.have.property('error').eql(false);
+                res.body.should.have.property('errors');
+                res.body.errors.length.should.be.eql(0);
                 res.body.should.have.property('data');
                 res.body.data.should.be.a('array');
                 res.body.data.length.should.be.eql(0);
@@ -530,10 +530,10 @@ describe('Follow', () => {
                         .end((err, res) => {
                             res.should.have.status(200);
                             res.body.should.be.a('object');
-                            res.body.should.have.property('error');
-                            res.body.should.have.property('error').eql(false);
-                            res.body.should.have.property('status');
-                            res.body.should.have.property('status').eql('Now Following');
+                            res.body.should.have.property('errors');
+                            res.body.errors.length.should.be.eql(0);
+                            res.body.should.have.property('data');
+                            res.body.should.have.property('data').eql('Now Following');
                             done();
                         });
                 });
@@ -560,10 +560,10 @@ describe('Follow', () => {
                     .end((err, res) => {
                         res.should.have.status(401);
                         res.body.should.be.a('object');
-                        res.body.should.have.property('error');
-                        res.body.should.have.property('error').eql(true);
-                        res.body.should.have.property('status');
-                        res.body.should.have.property('status').eql('User doesn\'t exist');
+                        res.body.should.have.property('errors');
+                        res.body.errors.length.should.be.eql(1);
+                        res.body.errors[0].should.have.property('title');
+                        res.body.errors[0].should.have.property('title').eql('User doesn\'t exist');
                         done();
                     });
             });
@@ -598,10 +598,10 @@ describe('Follow', () => {
                             .end((err, res) => {
                                 res.should.have.status(200);
                                 res.body.should.be.a('object');
-                                res.body.should.have.property('error');
-                                res.body.should.have.property('error').eql(false);
-                                res.body.should.have.property('status');
-                                res.body.should.have.property('status').eql('Already following');
+                                res.body.should.have.property('errors');
+                                res.body.errors.length.should.be.eql(0);
+                                res.body.should.have.property('data');
+                                res.body.should.have.property('data').eql('Already following');
                                 done();
                             });
                     });
@@ -638,10 +638,10 @@ describe('Follow', () => {
                             .end((err, res) => {
                                 res.should.have.status(200);
                                 res.body.should.be.a('object');
-                                res.body.should.have.property('error');
-                                res.body.should.have.property('error').eql(false);
-                                res.body.should.have.property('status');
-                                res.body.should.have.property('status').eql('Unfollowed');
+                                res.body.should.have.property('errors');
+                                res.body.errors.length.should.be.eql(0);
+                                res.body.should.have.property('data');
+                                res.body.should.have.property('data').eql(`You have unfollowed ${user2_username}`);
                                 done();
                             });
                     });
@@ -669,10 +669,10 @@ describe('Follow', () => {
                     .end((err, res) => {
                         res.should.have.status(200);
                         res.body.should.be.a('object');
-                        res.body.should.have.property('error');
-                        res.body.should.have.property('error').eql(false);
-                        res.body.should.have.property('status');
-                        res.body.should.have.property('status').eql('Unfollowed');
+                        res.body.should.have.property('errors');
+                        res.body.errors.length.should.be.eql(0);
+                        res.body.should.have.property('data');
+                        res.body.should.have.property('data').eql(`You have unfollowed rushil`);
                         done();
                     });
             });
@@ -703,8 +703,8 @@ describe('Follow', () => {
                             .end((err, res) => {
                                 res.should.have.status(202);
                                 res.body.should.be.a('object');
-                                res.body.should.have.property('error');
-                                res.body.should.have.property('error').eql(false);
+                                res.body.should.have.property('errors');
+                                res.body.errors.length.should.be.eql(0);
                                 res.body.should.have.property('data');
                                 res.body.data.should.have.property('name');
                                 res.body.data.should.have.property('name').eql(`${user2.name}`);
@@ -755,8 +755,8 @@ describe('Follow', () => {
                             .end((err, res) => {
                                 res.should.have.status(202);
                                 res.body.should.be.a('object');
-                                res.body.should.have.property('error');
-                                res.body.should.have.property('error').eql(false);
+                                res.body.should.have.property('errors');
+                                res.body.errors.length.should.be.eql(0);
                                 res.body.should.have.property('data');
                                 res.body.data.should.have.property('name');
                                 res.body.data.should.have.property('name').eql(`${user1.name}`);
@@ -791,8 +791,8 @@ AddUser = (user, callback) => {
         .end((err, res) => {
             res.should.have.status(201);
             res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.should.have.property('error').eql(false);
+            res.body.should.have.property('errors');
+            res.body.errors.should.have.property('length').eql(0);
             res.body.should.have.property('data');
             callback(res.body.data.username);
         });
@@ -805,8 +805,8 @@ AddInvalidUser = (user, callback) => {
         .end((err, res) => {
             res.should.have.status(409);
             res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.should.have.property('error').eql(true);
+            res.body.should.have.property('errors');
+            res.body.errors.length.should.be.eql(1);
             callback();
         });
 };
@@ -821,10 +821,10 @@ FollowUser = (token, userIdToFollow, callback) => {
         .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.should.have.property('error').eql(false);
-            res.body.should.have.property('status');
-            res.body.should.have.property('status').eql('Now Following');
+            res.body.should.have.property('errors');
+            res.body.errors.length.should.be.eql(0);
+            res.body.should.have.property('data');
+            res.body.should.have.property('data').eql('Now Following');
             callback();
         });
 };
@@ -836,8 +836,8 @@ LoginUser = (user, callback) => {
         .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.should.have.property('error').eql(false);
+            res.body.should.have.property('errors');
+            res.body.errors.length.should.be.eql(0);
             res.body.should.have.property('data');
             callback(res.body.data);
         });
@@ -851,8 +851,8 @@ SubmitPost = (post, token, callback) => {
         .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('object');
-            res.body.should.have.property('error');
-            res.body.should.have.property('error').eql(false);
+            res.body.should.have.property('errors');
+            res.body.errors.length.should.be.eql(0);
             callback(res.body.data);
         });
 };

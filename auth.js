@@ -13,28 +13,34 @@ module.exports.authenticate = async (req, res, next) => {
             req.user = { id, uuid };
             next();
         } catch (e) {
+            console.error(e);
             switch (e.message) {
             case 'User not found':
                 return res.status(404).json({
-                    error: true,
-                    data: 'User not found',
+                    data: null,
+                    errors: [{ title: 'User not found' }],
+                    meta: {},
                 });
             case 'User not logged in':
                 return res.status(412).json({
-                    error: true,
-                    data: 'User not logged in',
+                    data: null,
+                    errors: [{ title: 'User not logged in' }],
+                    meta: {},
                 });
             default:
                 return res.status(500).json({
-                    error: true,
-                    data: 'An error occurred authenticating',
+                    data: null,
+                    errors: [{ title: 'An error occurred authenticating' }],
+                    meta: {},
                 });
             }
         }
     } catch (e) {
+        console.error(e);
         return res.status(401).json({
-            error: true,
-            data: 'Bad token',
+            data: null,
+            errors: [{ title: 'Bad token' }],
+            meta: {},
         });
     }
 };
@@ -44,15 +50,18 @@ module.exports.authorizedToDelete = async (req, res, next) => {
         await user.authorizedToDelete(req.body.post, req.user.id);
         next();
     } catch (e) {
+        console.error(e);
         if (e.message.indexOf('Expected a row') > -1) {
             res.status(401).json({
-                error: true,
-                data: 'User does not have right to delete this post',
+                data: null,
+                errors: [{ title: 'User does not have right to delete this post' }],
+                meta: {},
             });
         } else {
             res.status(500).json({
-                error: true,
                 data: null,
+                errors: [{ title: 'An error occurred authenticating' }],
+                meta: {},
             });
         }
     }

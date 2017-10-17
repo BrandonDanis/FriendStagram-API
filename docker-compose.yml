@@ -24,3 +24,14 @@ services:
             - "5432:5432"
         volumes:
           - ./Database/db.sql:/docker-entrypoint-initdb.d/db.sql
+    friendstagram-db-test:
+        image: postgres:latest
+        environment:
+          # TODO: Use Docker secrets to hide this sensitive information
+          - POSTGRES_USER=friendstagram_admin
+          - POSTGRES_PASSWORD=password
+          - POSTGRES_DB=friendstagram_test
+        ports:
+            - "5433:5432"
+        volumes:
+          - ./Database/db.sql:/docker-entrypoint-initdb.d/db.sql

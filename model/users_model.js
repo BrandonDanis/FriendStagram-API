@@ -8,11 +8,8 @@ const saltRounds = config.saltRounds
 const uuid = require('uuid')
 
 module.exports.register = async (username, unHashedPassword, email, name) => {
-  console.log('salt')
   const allTheSalt = await bcrypt.genSalt(saltRounds)
-  console.log('hash')
   const password = await bcrypt.hash(unHashedPassword, allTheSalt, null)
-  console.log('insert')
   return db.insert('users', {
     username, password, email, name
   }).returning('*').row()

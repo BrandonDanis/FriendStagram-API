@@ -34,7 +34,6 @@ module.exports.register = async (
     errors.push('Name is null')
   }
 
-  console.log(errors)
   if (!errors.isEmpty()) {
     errors = errors.map(error => new Error(error))
     return res.status(401).json(new ErrorResponse(errors))

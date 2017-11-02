@@ -4,7 +4,7 @@
   "description": "Instagram for Friends",
   "main": "index.js",
   "scripts": {
-    "test": "standard && mocha --timeout 5000",
+    "test": "make tests",
     "start": "node index.js"
   },
   "repository": {

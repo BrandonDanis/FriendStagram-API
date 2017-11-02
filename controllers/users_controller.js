@@ -11,7 +11,7 @@ module.exports.findAllUsers = async (req, res) => {
   } catch (e) {
     console.log(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('Failed to load users')],
+      [new Error('Failed to load users')]
     ))
   }
 }
@@ -43,20 +43,20 @@ module.exports.register = async (
     const {id, datecreated} = await userModel.register(username, password,
       email, name)
     return res.status(201).json(new Response({
-      name, username, email, datecreated, id,
+      name, username, email, datecreated, id
     }))
   } catch (e) {
     if (e.code === '23505') {
       return res.status(409).json(new ErrorResponse([
         new Error(
           `${utils.capitalize(
-            e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`,
-        ),
+            e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`
+        )
       ]))
     }
     console.log(e)
     return res.status(500).json(
-      new ErrorResponse([new Error('An error occurred trying to register')]),
+      new ErrorResponse([new Error('An error occurred trying to register')])
     )
   }
 }
@@ -70,7 +70,7 @@ module.exports.findUser = async ({params: {username = null}}, res) => {
       newPost.user = {
         username: userInfo.username,
         profile_picture_url: userInfo.profile_picture_url,
-        name: userInfo.name,
+        name: userInfo.name
       }
       return newPost
     })
@@ -80,12 +80,12 @@ module.exports.findUser = async ({params: {username = null}}, res) => {
   } catch (e) {
     if (e.message === 'Expected a row, none found') { // user not found
       return res.status(404).json(new ErrorResponse(
-        [new Error('User not found')],
+        [new Error('User not found')]
       ))
     }
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error(`An error occurred trying to locate ${username}`)],
+      [new Error(`An error occurred trying to locate ${username}`)]
     ))
   }
 }
@@ -110,7 +110,7 @@ module.exports.login = async (
     const payload = {
       id: loginData.user_id,
       timestamp: new Date(),
-      uuid: loginData.id,
+      uuid: loginData.id
     }
     const token = jwt.encode(payload, cfg.jwtSecret)
     return res.status(200).json(new Response(token))
@@ -124,7 +124,7 @@ module.exports.login = async (
       error = 'An error occurred trying to verify you'
     }
     return res.status(500).json(new ErrorResponse(
-      [new Error(error)],
+      [new Error(error)]
     ))
   }
 }
@@ -150,11 +150,11 @@ module.exports.changeUser = async (
   } catch (e) {
     if (e.message !== 'Invalid password') {
       return res.status(500).json(new ErrorResponse(
-        [new Error('An error occurred trying to apply the new changes')],
+        [new Error('An error occurred trying to apply the new changes')]
       ))
     }
     return res.status(403).json(new ErrorResponse(
-      [new Error(e.message)],
+      [new Error(e.message)]
     ))
   }
 }
@@ -166,7 +166,7 @@ module.exports.logOff = async (req, res) => {
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('Failed to log out')],
+      [new Error('Failed to log out')]
     ))
   }
 }
@@ -175,12 +175,12 @@ module.exports.logOffAllOtherSessions = async (req, res) => {
   try {
     await userModel.logOffAllOtherSessions(req.user.id, req.user.uuid)
     return res.status(200).json(
-      new Response('Successfully logged out of your other sessions'),
+      new Response('Successfully logged out of your other sessions')
     )
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('An error occurred logging out of your other sessions')],
+      [new Error('An error occurred logging out of your other sessions')]
     ))
   }
 }
@@ -189,7 +189,7 @@ module.exports.delete = async ({body: {password = null}, user = null}, res) => {
   const passwordMatch = await userModel.comparePasswordByID(user.id, password)
   if (!passwordMatch) {
     return res.status(403).json(new ErrorResponse(
-      [new Error('Invalid password')],
+      [new Error('Invalid password')]
     ))
   }
 
@@ -199,7 +199,7 @@ module.exports.delete = async ({body: {password = null}, user = null}, res) => {
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('An error occurred trying to remove your account')],
+      [new Error('An error occurred trying to remove your account')]
     ))
   }
 }
@@ -209,12 +209,12 @@ module.exports.updateProfilePicture = async (
   try {
     await userModel.updateProfilePicture(id, imageURL)
     return res.status(200).json(
-      new Response('Successfully updated your user profile'),
+      new Response('Successfully updated your user profile')
     )
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('Failed to update user profile')],
+      [new Error('Failed to update user profile')]
     ))
   }
 }
@@ -224,12 +224,12 @@ module.exports.updateBackgroundPicture = async (
   try {
     await userModel.updateBackgroundPicture(id, imageURL)
     return res.status(200).json(
-      new Response('Successfully updated your user profile'),
+      new Response('Successfully updated your user profile')
     )
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('Failed to update user profile')],
+      [new Error('Failed to update user profile')]
     ))
   }
 }

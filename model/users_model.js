@@ -1,6 +1,6 @@
 const config = require('../config')
-const db = require('pg-bricks').
-  configure(config[process.env.NODE_ENV || 'development'])
+const db = require('pg-bricks')
+  .configure(config[process.env.NODE_ENV || 'development'])
 const bcrypt = require('bcrypt')
 
 // eslint-disable-next-line
@@ -14,7 +14,7 @@ module.exports.register = async (username, unHashedPassword, email, name) => {
   const password = await bcrypt.hash(unHashedPassword, allTheSalt, null)
   console.log('insert')
   return db.insert('users', {
-    username, password, email, name,
+    username, password, email, name
   }).returning('*').row()
 }
 
@@ -63,9 +63,9 @@ module.exports.findUser = async (username) => {
 }
 
 module.exports.findAllUsers = () => db.select(
-  ['id', 'username', 'name', 'datecreated', 'email', 'description']).
-  from('users').
-  rows()
+  ['id', 'username', 'name', 'datecreated', 'email', 'description'])
+  .from('users')
+  .rows()
 
 module.exports.authenticate = async (id, sessionID) => {
   try {
@@ -87,10 +87,10 @@ module.exports.comparePasswordByID = async (id, password) => {
 }
 
 module.exports.login = async (username, password) => {
-  const possibleUser = await db.select(['username', 'password']).
-    from('users').
-    where({username}).
-    row()
+  const possibleUser = await db.select(['username', 'password'])
+    .from('users')
+    .where({username})
+    .row()
   const validPssd = await bcrypt.compare(password, possibleUser.password)
 
   if (!validPssd) {

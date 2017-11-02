@@ -4,7 +4,7 @@
   "description": "Instagram for Friends",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --timeout 10000",
+    "test": "standard && mocha --timeout 5000",
     "start": "node index.js"
   },
   "repository": {
@@ -40,8 +40,17 @@
     "uuid": "^2.0.3"
   },
   "devDependencies": {
-    "eslint": "^4.8.0",
-    "eslint-config-airbnb-base": "^12.0.2",
-    "eslint-plugin-import": "^2.7.0"
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "before",
+      "after",
+      "beforeEach",
+      "afterEach",
+      "$in"
+    ]
   }
 }

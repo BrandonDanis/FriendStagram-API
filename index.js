@@ -12,7 +12,7 @@ if (process.env.NODE_ENV !== 'test') {
 
 app.get('/ping', (req, res) => {
   res.json({
-    message: 'pong',
+    message: 'pong'
   })
 })
 app.use('/users', require('./routes/user-routes'))

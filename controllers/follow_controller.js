@@ -10,17 +10,17 @@ module.exports.followUser = async (
     } catch (e) {
       if (e.message === 'User doesn\'t exist') {
         return res.status(401).json(new ErrorResponse(
-          [new Error(e.message)],
+          [new Error(e.message)]
         ))
       }
       console.error(e)
       return res.status(500).json(new ErrorResponse(
-        [new Error(e.message)],
+        [new Error(e.message)]
       ))
     }
   } else {
     return res.status(400).json(new ErrorResponse(
-      [new Error('followUsername parameter was not set')],
+      [new Error('followUsername parameter was not set')]
     ))
   }
 }
@@ -31,18 +31,18 @@ module.exports.unfollowUser = async (
     try {
       await followModel.unfollowUser(user.id, unfollowUsername)
       return res.status(200).json(
-        new Response(`You have unfollowed ${unfollowUsername}`),
+        new Response(`You have unfollowed ${unfollowUsername}`)
       )
     } catch (e) {
       // TODO: Do better error handling
       console.error(e)
       return res.status(500).json(new ErrorResponse(
-        [new Error(`An error occurred unfollowing ${unfollowUsername}`)],
+        [new Error(`An error occurred unfollowing ${unfollowUsername}`)]
       ))
     }
   } else {
     return res.status(400).json(new ErrorResponse(
-      [new Error('unfollowUsername parameter was not set')],
+      [new Error('unfollowUsername parameter was not set')]
     ))
   }
 }
@@ -54,7 +54,7 @@ module.exports.getAllFollowing = async ({params: {userId = null}}, res) => {
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('An error occurred retrieving users following you')],
+      [new Error('An error occurred retrieving users following you')]
     ))
   }
 }
@@ -66,7 +66,7 @@ module.exports.getAllFollowers = ({params: {userId = null}}, res) => {
   } catch (e) {
     console.error(e)
     return res.status(500).json(new ErrorResponse(
-      [new Error('An error occurred retrieving your followers')],
+      [new Error('An error occurred retrieving your followers')]
     ))
   }
 }

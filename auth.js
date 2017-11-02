@@ -19,19 +19,19 @@ module.exports.authenticate = async (req, res, next) => {
           return res.status(404).json({
             data: null,
             errors: [{title: 'User not found'}],
-            meta: {},
+            meta: {}
           })
         case 'User not logged in':
           return res.status(412).json({
             data: null,
             errors: [{title: 'User not logged in'}],
-            meta: {},
+            meta: {}
           })
         default:
           return res.status(500).json({
             data: null,
             errors: [{title: 'An error occurred authenticating'}],
-            meta: {},
+            meta: {}
           })
       }
     }
@@ -40,7 +40,7 @@ module.exports.authenticate = async (req, res, next) => {
     return res.status(401).json({
       data: null,
       errors: [{title: 'Bad token'}],
-      meta: {},
+      meta: {}
     })
   }
 }
@@ -55,13 +55,13 @@ module.exports.authorizedToDelete = async (req, res, next) => {
       res.status(401).json({
         data: null,
         errors: [{title: 'User does not have right to delete this post'}],
-        meta: {},
+        meta: {}
       })
     } else {
       res.status(500).json({
         data: null,
         errors: [{title: 'An error occurred authenticating'}],
-        meta: {},
+        meta: {}
       })
     }
   }

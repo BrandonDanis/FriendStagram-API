@@ -5,5 +5,5 @@ module.exports = {
   jwtSession: {session: false},
   development: process.env.DB_URL,
   test: process.env.TEST_DB_URL,
-  saltRounds: Number(process.env.SALT_ROUNDS),
+  saltRounds: Number(process.env.SALT_ROUNDS)
 }

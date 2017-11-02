@@ -23,7 +23,7 @@ module.exports.addPosts = async (
     } catch (e) {
       console.error(e)
       res.status(500).json(new ErrorResponse(
-        [new Error('Failed to create post')],
+        [new Error('Failed to create post')]
       ))
     }
   }
@@ -37,7 +37,7 @@ module.exports.getPostByID = async ({params: id = null}, res) => {
   } catch (e) {
     console.error(e)
     res.status(404).json(new ErrorResponse(
-      new Error('Failed to find post'),
+      new Error('Failed to find post')
     ))
   }
 }
@@ -72,7 +72,7 @@ module.exports.search = async (req, res) => {
   } catch (e) {
     console.error(e)
     res.status(500).json(new ErrorResponse(
-      [new Error('Failed to search for posts')],
+      [new Error('Failed to search for posts')]
     ))
   }
 }
@@ -84,7 +84,7 @@ module.exports.delete = async ({body: {post = null}}, res) => {
   } catch (e) {
     console.error(e)
     res.status(404).json(new ErrorResponse(
-      [new Error('Failed to delete post')],
+      [new Error('Failed to delete post')]
     ))
   }
 }

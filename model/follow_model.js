@@ -1,6 +1,6 @@
 const config = require('../config')
-const db = require('pg-bricks').
-  configure(config[process.env.NODE_ENV || 'development'])
+const db = require('pg-bricks')
+  .configure(config[process.env.NODE_ENV || 'development'])
 
 // TODO: ensure that followeeID is an actual valid id
 module.exports.followUser = async (followerId, followeeUsername) => {

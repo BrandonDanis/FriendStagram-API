@@ -1,31 +1,31 @@
 const config = require('../config')
-const db = require('pg-bricks').
-  configure(config[process.env.NODE_ENV || 'development'])
+const db = require('pg-bricks')
+  .configure(config[process.env.NODE_ENV || 'development'])
 
 module.exports.addPosts = (description, url, tags, owner) => db.insert('posts',
   {description, image_url: url, user_id: owner}).returning('*').row()
 
 module.exports.getPostByID = ({id}) => {
-  const getPost = db.select('p.id AS post_id', 'p.description', 'p.image_url').
-    from('posts as p').
-    join('users u').
-    on('p.user_id', 'u.id').
-    where({'p.id': id}).
-    row()
+  const getPost = db.select('p.id AS post_id', 'p.description', 'p.image_url')
+    .from('posts as p')
+    .join('users u')
+    .on('p.user_id', 'u.id')
+    .where({'p.id': id})
+    .row()
 
-  const getUserInfo = db.select('u.id as user_id', 'u.profile_picture_url').
-    from('users as u').
-    join('posts p').
-    on('u.id', 'p.user_id').
-    where({'p.id': id}).
-    row()
+  const getUserInfo = db.select('u.id as user_id', 'u.profile_picture_url')
+    .from('users as u')
+    .join('posts p')
+    .on('u.id', 'p.user_id')
+    .where({'p.id': id})
+    .row()
 
   return Promise.all([getPost, getUserInfo])
 }
 
 // TODO: add sort
 module.exports.search = async ({
-                                 tags, offset = 0, limit = 15, description = '',
+                                 tags, offset = 0, limit = 15, description = ''
                                }) => {
   const findParams = {}
   if (tags) { findParams.tags = tags }
@@ -53,7 +53,7 @@ module.exports.search = async ({
 module.exports.delete = id => db.delete().from('posts').where({id}).run()
 
 // eslint-disable-next-line no-undef
-module.exports.batchDelete = postsToDelete => db.delete().
-  from('posts').
-  where($in('id', postsToDelete)).
-  run()
+module.exports.batchDelete = postsToDelete => db.delete()
+  .from('posts')
+  .where($in('id', postsToDelete))
+  .run()

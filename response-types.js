@@ -2,13 +2,12 @@ class Response {
   constructor (data, meta = undefined) {
     this.data = data
     this.errors = []
-    if (!!meta)
-      this.meta = meta
+    if (meta) { this.meta = meta }
   }
 }
 
 class Error {
-  constructor(title) {
+  constructor (title) {
     this.title = title
   }
 }

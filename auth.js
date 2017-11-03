@@ -1,6 +1,7 @@
 const cfg = require('./config')
 const jwt = require('jwt-simple')
 const user = require('./model/users_model')
+const {Error, ErrorResponse} = require('./response-types')
 
 // eslint-disable-next-line
 module.exports.authenticate = async (req, res, next) => {
@@ -16,32 +17,24 @@ module.exports.authenticate = async (req, res, next) => {
       console.error(e)
       switch (e.message) {
         case 'User not found':
-          return res.status(404).json({
-            data: null,
-            errors: [{title: 'User not found'}],
-            meta: {}
-          })
+          return res.status(404).json(new ErrorResponse(
+            [new Error('User not found')])
+          )
         case 'User not logged in':
-          return res.status(412).json({
-            data: null,
-            errors: [{title: 'User not logged in'}],
-            meta: {}
-          })
+          return res.status(412).json(new ErrorResponse(
+            [new Error('User not logged in')]
+          ))
         default:
-          return res.status(500).json({
-            data: null,
-            errors: [{title: 'An error occurred authenticating'}],
-            meta: {}
-          })
+          return res.status(500).json(new ErrorResponse(
+            [new Error('An error occurred authenticating')]
+          ))
       }
     }
   } catch (e) {
     console.error(e)
-    return res.status(401).json({
-      data: null,
-      errors: [{title: 'Bad token'}],
-      meta: {}
-    })
+    return res.status(401).json(new ErrorResponse(
+      [new Error('Bad token')]
+    ))
   }
 }
 
@@ -52,17 +45,13 @@ module.exports.authorizedToDelete = async (req, res, next) => {
   } catch (e) {
     console.error(e)
     if (e.message.indexOf('Expected a row') > -1) {
-      res.status(401).json({
-        data: null,
-        errors: [{title: 'User does not have right to delete this post'}],
-        meta: {}
-      })
+      res.status(401).json(new ErrorResponse(
+        [new Error('User does not have the right to delete this post')]
+      ))
     } else {
-      res.status(500).json({
-        data: null,
-        errors: [{title: 'An error occurred authenticating'}],
-        meta: {}
-      })
+      res.status(500).json(new ErrorResponse(
+        [new Error('An error occurred authenticating')]
+      ))
     }
   }
 }

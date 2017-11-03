@@ -4,7 +4,7 @@
   "description": "Instagram for Friends",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --timeout 10000",
+    "test": "make tests",
     "start": "node index.js"
   },
   "repository": {
@@ -38,5 +38,19 @@
     "pg-bricks": "^0.6.0",
     "rx": "^4.1.0",
     "uuid": "^2.0.3"
+  },
+  "devDependencies": {
+    "standard": "^10.0.3"
+  },
+  "standard": {
+    "globals": [
+      "describe",
+      "it",
+      "before",
+      "after",
+      "beforeEach",
+      "afterEach",
+      "$in"
+    ]
   }
 }

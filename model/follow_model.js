@@ -1,44 +1,43 @@
 const config = require('../config')
-const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development']);
+const db = require('pg-bricks')
+  .configure(config[process.env.NODE_ENV || 'development'])
 
-//TODO: ensure that followeeID is an actual valid id
-module.exports.followUser = (followerId, followeeUsername, callback) => {
-    db.raw("SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = (SELECT id FROM users WHERE username = $2)", [followerId, followeeUsername]).row((err,row) => {
-		if (!row) {
-			db.raw("INSERT INTO users_follows VALUES ($1, (SELECT id FROM users WHERE username = $2))", [followerId, followeeUsername]).run((err) => {
-				if(err){
-					//noinspection EqualityComparisonWithCoercionJS
-                    if(err.code == 23502){
-		                callback(401, "User doesn't exist")
-		            }else{
-						callback(500, "Error while attempting to follow")
-					}
-				}else{
-					callback(200, "Now Following")
-				}
-			})
-		} else {
-			callback(200, "Already following")
-		}
-	})
+// TODO: ensure that followeeID is an actual valid id
+module.exports.followUser = async (followerId, followeeUsername) => {
+  try {
+    await db.raw(
+      'SELECT * FROM USERS_FOLLOWS WHERE follower = $1 AND following = (SELECT id FROM users WHERE username = $2)',
+      [followerId, followeeUsername]).row()
+    return 'Already following'
+  } catch (e) {
+    if (e.message === 'Expected a row, none found') {
+      try {
+        await db.raw(
+          'INSERT INTO users_follows VALUES ($1, (SELECT id FROM users WHERE username = $2))',
+          [followerId, followeeUsername]).run()
+        return 'Now Following'
+      } catch (err) {
+        if (err.code === '23502') {
+          throw new Error('User doesn\'t exist')
+        } else {
+          throw new Error('Error while attempting to follow')
+        }
+      }
+    } else {
+      console.error(e)
+      throw new Error('Error while attempting to follow')
+    }
+  }
 }
 
-// TODO: Add meaningful error message
-module.exports.unfollowUser = (unfollowerId, unfolloweeUsername, callback) => {
-    db.raw("DELETE FROM users_follows where follower = $1 and following = (SELECT id FROM users WHERE username = $2) RETURNING *", [unfollowerId, unfolloweeUsername]).rows(err => {
-		if(err){
-            console.log(err);
-			callback(500, "Error unfollowing")
-		}else{
-			callback(200, "Unfollowed")
-		}
-	})
-}
+module.exports.unfollowUser = (unfollowerId, unfolloweeUsername) => db.raw(
+  'DELETE FROM users_follows where follower = $1 and following = (SELECT id FROM users WHERE username = $2) RETURNING *',
+  [unfollowerId, unfolloweeUsername]).rows()
 
-module.exports.getAllFollowing = (userId, callback) => {
-	db.raw("SELECT id,name,username,profile_picture_url FROM USERS_FOLLOWS, USERS WHERE FOLLOWER = $1 AND USERS.ID = USERS_FOLLOWS.following", [userId]).rows(callback)
-}
+module.exports.getAllFollowing = userID => db.raw(
+  'SELECT u.id, u.name, u.username, u.profile_picture_url FROM users u JOIN users_follows uf ON u.id = uf.following WHERE uf.follower = $1',
+  [userID]).rows()
 
-module.exports.getAllFollowers = (userId, callback) => {
-	db.raw("SELECT id,name,username,profile_picture_url FROM USERS_FOLLOWS, USERS WHERE FOLLOWING = $1 AND USERS.ID = USERS_FOLLOWS.follower", [userId]).rows(callback)
-}
+module.exports.getAllFollowers = userID => db.raw(
+  'SELECT u.id, u.name, u.username, u.profile_picture_url FROM users u JOIN users_followers uf ON u.id = uf.follower WHERE u.following = $1',
+  [userID]).rows()

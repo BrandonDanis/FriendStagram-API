@@ -1,12 +1,9 @@
-version: "2.1"
+version: "3.1"
 
 services:
     friendstagram:
         image: friendstagram/backend
         restart: on-failure
-        environment:
-            # TODO: Use Docker secrets to hide this sensitive information
-            - DB_URL=postgres://friendstagram_admin:password@friendstagram-db/friendstagram
         ports:
             - "8080:8080"
         depends_on:
@@ -16,22 +13,41 @@ services:
     friendstagram-db:
         image: postgres:latest
         environment:
-          # TODO: Use Docker secrets to hide this sensitive information
-          - POSTGRES_USER=friendstagram_admin
-          - POSTGRES_PASSWORD=password
-          - POSTGRES_DB=friendstagram
+          - POSTGRES_USER_FILE=/run/secrets/dev_db_user
+          - POSTGRES_PASSWORD_FILE=/run/secrets/dev_db_password
+          - POSTGRES_DB_FILE=/run/secrets/dev_db
         ports:
             - "5432:5432"
         volumes:
           - ./Database/db.sql:/docker-entrypoint-initdb.d/db.sql
+        secrets:
+            - dev_db_user
+            - dev_db_password
+            - dev_db
     friendstagram-db-test:
         image: postgres:latest
         environment:
-          # TODO: Use Docker secrets to hide this sensitive information
-          - POSTGRES_USER=friendstagram_admin
-          - POSTGRES_PASSWORD=password
-          - POSTGRES_DB=friendstagram_test
+          - POSTGRES_USER_FILE=/run/secrets/test_db_user
+          - POSTGRES_PASSWORD_FILE=/run/secrets/test_db_password
+          - POSTGRES_DB_FILE=/run/secrets/test_db
         ports:
             - "5433:5432"
         volumes:
           - ./Database/db.sql:/docker-entrypoint-initdb.d/db.sql
+        secrets:
+            - test_db_user
+            - test_db_password
+            - test_db
+secrets:
+  dev_db_user:
+    file: ./secrets/dev/db_user.secret
+  dev_db_password:
+    file: ./secrets/dev/db_password.secret
+  dev_db:
+    file: ./secrets/dev/database.secret
+  test_db_user:
+    file: ./secrets/test/db_user.secret
+  test_db_password:
+    file: ./secrets/test/db_password.secret
+  test_db:
+    file: ./secrets/test/database.secret

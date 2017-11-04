@@ -427,6 +427,48 @@ describe('Posts', () => {
     })
   })
 
+  it('POST /posts/like/:id | Should like a post by id', (done) => {
+    const user = {
+      username: 'brando',
+      password: 'brando',
+      email: 'brando@brando.com',
+      name: 'Brandon Danis'
+    }
+
+    const user2 = {
+      username: 'brando2',
+      password: 'brando2',
+      email: 'brando2@brando.com',
+      name: 'Brandon Danis'
+    }
+
+    const post = {
+      url: 'myurl.png',
+      description: 'Test Desc',
+      tags: 'Tags'
+    }
+
+    AddUser(user, () => {
+      AddUser(user2, () => {
+        LoginUser(user, (token) => {
+          LoginUser(user2, (token2) => {
+            SubmitPost(post, token, (postInfo) => {
+              chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id}).end((err, res) => {
+                should.not.exist(err)
+                res.should.have.status(200)
+                res.body.should.be.a('object')
+                res.body.should.have.property('errors')
+                res.body.errors.length.should.be.eql(0)
+                res.body.should.have.property('data')
+                done()
+              })
+            })
+          })
+        })
+      })
+    })
+  })
+
   it('DELETE /posts | Should delete newly added post', (done) => {
     const user = {
       username: 'brando',

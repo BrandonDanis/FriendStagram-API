@@ -5,7 +5,7 @@ const db = require('pg-bricks')
 module.exports.addPosts = (description, url, tags, owner) => db.insert('posts',
   {description, image_url: url, user_id: owner}).returning('*').row()
 
-module.exports.getPostByID = ({id}) => {
+module.exports.getPostByID = (id) => {
   const getPost = db.select('p.id AS post_id', 'p.description', 'p.image_url')
     .from('posts as p')
     .join('users u')
@@ -49,6 +49,8 @@ module.exports.search = async ({
 
   return getPosts(postIDs)
 }
+
+module.exports.likePost = (id, userID) => db.insert('post_likes', {'post_id': id, 'user_id': userID}).run()
 
 module.exports.delete = id => db.delete().from('posts').where({id}).run()
 

@@ -29,7 +29,7 @@ module.exports.addPosts = async (
   }
 }
 
-module.exports.getPostByID = async ({params: id = null}, res) => {
+module.exports.getPostByID = async ({params: {id = null}}, res) => {
   try {
     const [post, user] = await postModel.getPostByID(id)
     post.user_info = user
@@ -73,6 +73,19 @@ module.exports.search = async (req, res) => {
     console.error(e)
     res.status(500).json(new ErrorResponse(
       [new Error('Failed to search for posts')]
+    ))
+  }
+}
+
+module.exports.likePost = async ({params: {id = null}, user = null}, res) => {
+  try {
+    const postID = Number(id)
+    await postModel.likePost(postID, user.id)
+    res.status(200).json(new Response(null))
+  } catch (e) {
+    console.error(e)
+    res.status(500).json(new ErrorResponse(
+      [new Error('Failed to like this post')]
     ))
   }
 }

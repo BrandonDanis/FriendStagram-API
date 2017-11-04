@@ -12,6 +12,27 @@ const should = chai.should()
 
 chai.use(chaiHttp)
 
+// mock data
+const user = {
+  username: 'brando',
+  password: 'brando',
+  email: 'brando@brando.com',
+  name: 'Brandon Danis'
+}
+
+const user2 = {
+  username: 'brando2',
+  password: 'brando2',
+  email: 'brando2@brando.com',
+  name: 'Brandon Danis'
+}
+
+const post = {
+  url: 'myurl.png',
+  description: 'Test Desc',
+  tags: 'Tags'
+}
+
 describe('Heartbeat', () => {
   it('Checking if server is alive', (done) => {
     chai.request(server).get('/ping').end((err, res) => {
@@ -33,6 +54,7 @@ const AddUser = (user, callback) => {
     callback(res.body.data.username)
   })
 }
+
 const AddInvalidUser = (user, callback) => {
   chai.request(server).post('/users/').send(user).end((err, res) => {
     should.exist(err)
@@ -43,6 +65,7 @@ const AddInvalidUser = (user, callback) => {
     callback()
   })
 }
+
 const LoginUser = (user, callback) => {
   chai.request(server).post('/users/login').send(user).end((err, res) => {
     should.not.exist(err)
@@ -54,37 +77,32 @@ const LoginUser = (user, callback) => {
     callback(res.body.data)
   })
 }
+
 const EmptyDatabase = (callback) => {
   db.delete().from('users').run((err) => {
     if (err) { console.error(err) } else { callback() }
   })
 }
+
 describe('Users', () => {
   beforeEach((done) => {
     EmptyDatabase(done)
   })
 
   it('POST /users | Should create a new user', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
     AddUser(user, () => {
       done()
     })
   })
 
   it('POST /users | Should not create a user with no username', (done) => {
-    const user = {
+    const invalidUser = {
       password: 'brando',
-      email: 'brando@brando.com',
+      email: 'brando1@brando.com',
       name: 'Brandon Danis'
     }
 
-    chai.request(server).post('/users/').send(user).end((err, res) => {
+    chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
       should.exist(err)
       res.should.have.status(401)
       res.body.should.be.a('object')
@@ -95,13 +113,13 @@ describe('Users', () => {
   })
 
   it('POST /users | Should not create a user with no password', (done) => {
-    const user = {
+    const invalidUser = {
       username: 'brando',
-      email: 'brando@brando.com',
+      email: 'brando1@brando.com',
       name: 'Brandon Danis'
     }
 
-    chai.request(server).post('/users/').send(user).end((err, res) => {
+    chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
       should.exist(err)
       res.should.have.status(401)
       res.body.should.be.a('object')
@@ -114,13 +132,6 @@ describe('Users', () => {
   it(
     'POST /users | Should not create a new user with already existing username',
     (done) => {
-      const user = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
       const invalidUser = {
         username: 'brando',
         password: 'brando',
@@ -137,13 +148,6 @@ describe('Users', () => {
 
   it('POST /users | Should not create a new user with already existing email',
     (done) => {
-      const user = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
       const invalidUser = {
         username: 'brando1',
         password: 'brando',
@@ -159,13 +163,6 @@ describe('Users', () => {
     })
 
   it('GET /users/:username | Should give us the users info', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
     AddUser(user, () => {
       chai.request(server).get(`/users/${user.username}`).end((err, res) => {
         should.not.exist(err)
@@ -195,13 +192,6 @@ describe('Users', () => {
   })
 
   it('POST /users/login | Should login user', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
     AddUser(user, () => {
       chai.request(server).post('/users/login').send(user).end((err, res) => {
         should.not.exist(err)
@@ -217,13 +207,6 @@ describe('Users', () => {
   })
 
   it('PUT /user/profile_picture | Should allow user to update his profile picture', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
     const imageUrl = 'myimage.png'
 
     AddUser(user, () => {
@@ -255,13 +238,6 @@ describe('Users', () => {
   it(
     'PUT /user/background_picture | Should allow user to update his background picture',
     (done) => {
-      const user = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
       const imageUrl = 'my_bg_image.png'
 
       AddUser(user, () => {
@@ -323,19 +299,6 @@ describe('Posts', () => {
   })
 
   it('POST /posts | Should submit a new post', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    const post = {
-      url: 'myurl.png',
-      description: 'Test Desc',
-      tags: 'Tags'
-    }
-
     AddUser(user, () => {
       LoginUser(user, (token) => {
         SubmitPost(post, token, () => {
@@ -363,19 +326,6 @@ describe('Posts', () => {
   })
 
   it('POST /posts | Should not submit a new post when unauthorized', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    const post = {
-      url: 'myurl.png',
-      description: 'Test Desc',
-      tags: 'Tags'
-    }
-
     AddUser(user, () => {
       LoginUser(user, (token) => {
         chai.request(server).post('/posts').send(post).end((err, res) => {
@@ -393,19 +343,6 @@ describe('Posts', () => {
   })
 
   it('GET /posts/id/:id | Should get a post by id', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    const post = {
-      url: 'myurl.png',
-      description: 'Test Desc',
-      tags: 'Tags'
-    }
-
     AddUser(user, () => {
       LoginUser(user, (token) => {
         SubmitPost(post, token, (postInfo) => {
@@ -428,19 +365,6 @@ describe('Posts', () => {
   })
 
   it('DELETE /posts | Should delete newly added post', (done) => {
-    const user = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    const post = {
-      url: 'myurl.png',
-      description: 'Test Desc',
-      tags: 'Tags'
-    }
-
     AddUser(user, () => {
       LoginUser(user, (token) => {
         SubmitPost(post, token, (postInfo) => {
@@ -461,19 +385,6 @@ describe('Posts', () => {
 
   it('DELETE /posts | Should not delete post when header is not set',
     (done) => {
-      const user = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      const post = {
-        url: 'myurl.png',
-        description: 'Test Desc',
-        tags: 'Tags'
-      }
-
       AddUser(user, () => {
         LoginUser(user, (token) => {
           SubmitPost(post, token, (postInfo) => {
@@ -546,24 +457,10 @@ describe('Follow', () => {
       })
     })
 
-  it('POST /follow | User1 should be following User2', (done) => {
-    const user1 = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    const user2 = {
-      username: 'brando2',
-      password: 'brando2',
-      email: 'brando2@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    AddUser(user1, () => {
+  it('POST /follow | User should be following User2', (done) => {
+    AddUser(user, () => {
       AddUser(user2, (secondUsername) => {
-        LoginUser(user1, (token) => {
+        LoginUser(user, (token) => {
           chai.request(server).post('/follow').set('token', token).send({
             followUsername: secondUsername
           }).end((err, res) => {
@@ -583,15 +480,8 @@ describe('Follow', () => {
 
   it('POST /follow | User should not be able to follow a non-existent user',
     (done) => {
-      const user1 = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      AddUser(user1, () => {
-        LoginUser(user1, (token) => {
+      AddUser(user, () => {
+        LoginUser(user, (token) => {
           chai.request(server).post('/follow').set('token', token).send({
             followUsername: 'rushil'
           }).end((err, res) => {
@@ -610,23 +500,9 @@ describe('Follow', () => {
 
   it('POST /follow | User should be told if already following another user',
     (done) => {
-      const user1 = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      const user2 = {
-        username: 'brando2',
-        password: 'brando2',
-        email: 'brando2@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      AddUser(user1, () => {
+      AddUser(user, () => {
         AddUser(user2, (secondUsername) => {
-          LoginUser(user1, (token) => {
+          LoginUser(user, (token) => {
             FollowUser(token, secondUsername, () => {
               chai.request(server).post('/follow').set('token', token).send({
                 followUsername: secondUsername
@@ -647,23 +523,9 @@ describe('Follow', () => {
     })
 
   it('DELETE /follow | User should be able to unfollow a user', (done) => {
-    const user1 = {
-      username: 'brando',
-      password: 'brando',
-      email: 'brando@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    const user2 = {
-      username: 'brando2',
-      password: 'brando2',
-      email: 'brando2@brando.com',
-      name: 'Brandon Danis'
-    }
-
-    AddUser(user1, () => {
+    AddUser(user, () => {
       AddUser(user2, (secondUsername) => {
-        LoginUser(user1, (token) => {
+        LoginUser(user, (token) => {
           FollowUser(token, secondUsername, () => {
             chai.request(server).delete('/follow').set('token', token).send({
               unfollowUsername: secondUsername
@@ -686,15 +548,8 @@ describe('Follow', () => {
   it(
     'DELETE /follow | User should be able to attempt to unfollow a non-existent user',
     (done) => {
-      const user1 = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      AddUser(user1, () => {
-        LoginUser(user1, (token) => {
+      AddUser(user, () => {
+        LoginUser(user, (token) => {
           chai.request(server).delete('/follow').set('token', token).send({
             unfollowUsername: 'rushil'
           }).end((err, res) => {
@@ -714,23 +569,9 @@ describe('Follow', () => {
   it(
     'GET /users/:username | Should be able to see who is following when requesting user',
     (done) => {
-      const user1 = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      const user2 = {
-        username: 'brando2',
-        password: 'brando2',
-        email: 'brando2@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      AddUser(user1, (firstUsername) => {
+      AddUser(user, (firstUsername) => {
         AddUser(user2, (secondUsername) => {
-          LoginUser(user1, (token) => {
+          LoginUser(user, (token) => {
             FollowUser(token, secondUsername, () => {
               chai.request(server).get(`/users/${user2.username}`).end((err, res) => {
                 should.not.exist(err)
@@ -766,25 +607,11 @@ describe('Follow', () => {
 
   it('GET /users/:username | Should be able to see who the user is following',
     (done) => {
-      const user1 = {
-        username: 'brando',
-        password: 'brando',
-        email: 'brando@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      const user2 = {
-        username: 'brando2',
-        password: 'brando2',
-        email: 'brando2@brando.com',
-        name: 'Brandon Danis'
-      }
-
-      AddUser(user1, () => {
+      AddUser(user, () => {
         AddUser(user2, (secondUsername) => {
-          LoginUser(user1, (token) => {
+          LoginUser(user, (token) => {
             FollowUser(token, secondUsername, () => {
-              chai.request(server).get(`/users/${user1.username}`).end((err, res) => {
+              chai.request(server).get(`/users/${user.username}`).end((err, res) => {
                 should.not.exist(err)
                 res.should.have.status(202)
                 res.body.should.be.a('object')
@@ -792,9 +619,9 @@ describe('Follow', () => {
                 res.body.errors.length.should.be.eql(0)
                 res.body.should.have.property('data')
                 res.body.data.should.have.property('name')
-                res.body.data.should.have.property('name').eql(`${user1.name}`)
+                res.body.data.should.have.property('name').eql(`${user.name}`)
                 res.body.data.should.have.property('username')
-                res.body.data.should.have.property('username').eql(`${user1.username}`)
+                res.body.data.should.have.property('username').eql(`${user.username}`)
                 res.body.data.should.have.property('datecreated')
                 res.body.data.should.have.property('description')
                 res.body.data.should.have.property('posts')

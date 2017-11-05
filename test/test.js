@@ -13,7 +13,7 @@ const should = chai.should()
 chai.use(chaiHttp)
 
 // mock data
-const user = {
+const user1 = {
   username: 'brando',
   password: 'brando',
   email: 'brando@brando.com',
@@ -98,7 +98,7 @@ describe('Users', () => {
   })
 
   it('POST /users | Should create a new user', async () => {
-    await AddUser(user)
+    await AddUser(user1)
   })
 
   it('POST /users | Should not create a user with no username', async () => {
@@ -135,7 +135,7 @@ describe('Users', () => {
         name: 'Brandon Danis'
       }
 
-      AddUser(user, () => {
+      AddUser(user1, () => {
         AddInvalidUser(invalidUser, [{title: 'Username already exists'}], done)
       })
     })
@@ -149,19 +149,19 @@ describe('Users', () => {
         name: 'Brandon Danis'
       }
 
-      AddUser(user, () => {
+      AddUser(user1, () => {
         AddInvalidUser(invalidUser, [{title: 'Email already exists'}], done)
       })
     })
 
   it('GET /users/:username | Should give us the users info', async () => {
-    await AddUser(user)
-    const res = await chai.request(server).get(`/users/${user.username}`)
+    await AddUser(user1)
+    const res = await chai.request(server).get(`/users/${user1.username}`)
     VerifyValidResponse(res, 202)
     res.body.data.should.have.property('name')
-    res.body.data.should.have.property('name').eql(`${user.name}`)
+    res.body.data.should.have.property('name').eql(`${user1.name}`)
     res.body.data.should.have.property('username')
-    res.body.data.should.have.property('username').eql(`${user.username}`)
+    res.body.data.should.have.property('username').eql(`${user1.username}`)
     res.body.data.should.have.property('datecreated')
     res.body.data.should.have.property('description')
     res.body.data.should.have.property('posts')
@@ -176,8 +176,8 @@ describe('Users', () => {
   })
 
   it('POST /users/login | Should login user', async () => {
-    await AddUser(user)
-    const res = await chai.request(server).post('/users/login').send(user)
+    await AddUser(user1)
+    const res = await chai.request(server).post('/users/login').send(user1)
     VerifyValidResponse(res)
     res.body.data.should.be.a('string')
   })
@@ -185,12 +185,12 @@ describe('Users', () => {
   it('PUT /user/profile_picture | Should allow user to update his profile picture', async () => {
     const imageUrl = 'myimage.png'
 
-    await AddUser(user)
-    const token = await LoginUser(user)
+    await AddUser(user1)
+    const token = await LoginUser(user1)
     let res = await chai.request(server).put('/users/profile_picture').set('token', token).send({image_url: imageUrl})
     VerifyValidResponse(res)
     res.body.should.have.property('data').eql('Successfully updated your user profile')
-    res = await chai.request(server).get(`/users/${user.username}`)
+    res = await chai.request(server).get(`/users/${user1.username}`)
     VerifyValidResponse(res, 202)
     res.body.data.should.have.property('profile_picture_url')
     res.body.data.should.have.property('profile_picture_url').eql(imageUrl)
@@ -199,12 +199,12 @@ describe('Users', () => {
   it('PUT /user/background_picture | Should allow user to update his background picture', async () => {
     const imageUrl = 'my_bg_image.png'
 
-    await AddUser(user)
-    const token = await LoginUser(user)
+    await AddUser(user1)
+    const token = await LoginUser(user1)
     let res = await chai.request(server).put('/users/background_picture').set('token', token).send({image_url: imageUrl})
     VerifyValidResponse(res)
     res.body.should.have.property('data').eql('Successfully updated your user profile')
-    res = await chai.request(server).get(`/users/${user.username}`)
+    res = await chai.request(server).get(`/users/${user1.username}`)
     VerifyValidResponse(res, 202)
     res.body.data.should.have.property('profile_background_url')
     res.body.data.should.have.property('profile_background_url').eql(imageUrl)
@@ -235,8 +235,8 @@ describe('Posts', () => {
   })
 
   it('POST /posts | Should submit a new post', async () => {
-    await AddUser(user)
-    const token = await LoginUser(user)
+    await AddUser(user1)
+    const token = await LoginUser(user1)
     await SubmitPost(post, token)
     const res = await chai.request(server).get('/posts')
     VerifyValidResponse(res)
@@ -247,13 +247,13 @@ describe('Posts', () => {
     res.body.data[0].should.have.property('image_url')
     res.body.data[0].should.have.property('image_url').eql(post.url)
     res.body.data[0].should.have.property('username')
-    res.body.data[0].should.have.property('username').eql(user.username)
+    res.body.data[0].should.have.property('username').eql(user1.username)
     res.body.data[0].should.have.property('description')
   })
 
   it('POST /posts | Should not submit a new post when unauthorized', (done) => {
-    AddUser(user, () => {
-      LoginUser(user, () => {
+    AddUser(user1, () => {
+      LoginUser(user1, () => {
         chai.request(server).post('/posts').send(post).end((err, res) => {
           VerifyInvalidResponse(err, res, [{title: 'Bad token'}], 401, done)
         })
@@ -262,8 +262,8 @@ describe('Posts', () => {
   })
 
   it('GET /posts/id/:id | Should get a post by id', async () => {
-    await AddUser(user)
-    const token = await LoginUser(user)
+    await AddUser(user1)
+    const token = await LoginUser(user1)
     const postInfo = await SubmitPost(post, token)
     const res = await chai.request(server).get(`/posts/id/${postInfo.id}`)
     VerifyValidResponse(res)
@@ -274,8 +274,8 @@ describe('Posts', () => {
   })
 
   it('DELETE /posts | Should delete newly added post', async () => {
-    await AddUser(user)
-    const token = await LoginUser(user)
+    await AddUser(user1)
+    const token = await LoginUser(user1)
     const postInfo = await SubmitPost(post, token)
     const res = await chai.request(server).delete('/posts/').set('token', token).send({post: postInfo.id})
     VerifyValidResponse(res)
@@ -283,8 +283,8 @@ describe('Posts', () => {
   })
 
   it('DELETE /posts | Should not delete post when header is not set', (done) => {
-    AddUser(user, () => {
-      LoginUser(user, (token) => {
+    AddUser(user1, () => {
+      LoginUser(user1, (token) => {
         SubmitPost(post, token, (postInfo) => {
           chai.request(server).delete('/posts/').send({post: postInfo.id}).end((err, res) => {
             VerifyInvalidResponse(err, res, [{title: 'Bad token'}], 401, done)
@@ -322,17 +322,17 @@ describe('Follow', () => {
   })
 
   it('POST /follow | User should be following User2', async () => {
-    await AddUser(user)
+    await AddUser(user1)
     const secondUsername = await AddUser(user2)
-    const token = await LoginUser(user)
+    const token = await LoginUser(user1)
     const res = await chai.request(server).post('/follow').set('token', token).send({followUsername: secondUsername})
     VerifyValidResponse(res)
     res.body.should.have.property('data').eql('Now Following')
   })
 
   it('POST /follow | User should not be able to follow a non-existent user', (done) => {
-    AddUser(user, () => {
-      LoginUser(user, (token) => {
+    AddUser(user1, () => {
+      LoginUser(user1, (token) => {
         chai.request(server).post('/follow').set('token', token).send({followUsername: 'rushil'}).end((err, res) => {
           VerifyInvalidResponse(err, res, [{title: 'User doesn\'t exist'}], 401, done)
         })
@@ -341,9 +341,9 @@ describe('Follow', () => {
   })
 
   it('POST /follow | User should be told if already following another user', async () => {
-    await AddUser(user)
+    await AddUser(user1)
     const secondUsername = await AddUser(user2)
-    const token = await LoginUser(user)
+    const token = await LoginUser(user1)
     await FollowUser(token, secondUsername)
     const res = await chai.request(server).post('/follow').set('token', token).send({followUsername: secondUsername})
     VerifyValidResponse(res)
@@ -351,9 +351,9 @@ describe('Follow', () => {
   })
 
   it('DELETE /follow | User should be able to unfollow a user', async () => {
-    await AddUser(user)
+    await AddUser(user1)
     const secondUsername = await AddUser(user2)
-    const token = await LoginUser(user)
+    const token = await LoginUser(user1)
     await FollowUser(token, secondUsername)
     const res = await chai.request(server).delete('/follow').set('token', token).send({unfollowUsername: secondUsername})
     VerifyValidResponse(res)
@@ -361,17 +361,17 @@ describe('Follow', () => {
   })
 
   it('DELETE /follow | User should be able to attempt to unfollow a non-existent user', async () => {
-    await AddUser(user)
-    const token = await LoginUser(user)
+    await AddUser(user1)
+    const token = await LoginUser(user1)
     const res = await chai.request(server).delete('/follow').set('token', token).send({unfollowUsername: 'rushil'})
     VerifyValidResponse(res)
     res.body.should.have.property('data').eql('You have unfollowed rushil')
   })
 
   it('GET /users/:username | Should be able to see who is following when requesting user', async () => {
-    const firstUsername = await AddUser(user)
+    const firstUsername = await AddUser(user1)
     const secondUsername = await AddUser(user2)
-    const token = await LoginUser(user)
+    const token = await LoginUser(user1)
     await FollowUser(token, secondUsername)
     const res = await chai.request(server).get(`/users/${user2.username}`)
     VerifyValidResponse(res, 202)
@@ -395,16 +395,16 @@ describe('Follow', () => {
   })
 
   it('GET /users/:username | Should be able to see who the user is following', async () => {
-    await AddUser(user)
+    await AddUser(user1)
     const secondUsername = await AddUser(user2)
-    const token = await LoginUser(user)
+    const token = await LoginUser(user1)
     await FollowUser(token, secondUsername)
-    const res = await chai.request(server).get(`/users/${user.username}`)
+    const res = await chai.request(server).get(`/users/${user1.username}`)
     VerifyValidResponse(res, 202)
     res.body.data.should.have.property('name')
-    res.body.data.should.have.property('name').eql(`${user.name}`)
+    res.body.data.should.have.property('name').eql(`${user1.name}`)
     res.body.data.should.have.property('username')
-    res.body.data.should.have.property('username').eql(`${user.username}`)
+    res.body.data.should.have.property('username').eql(`${user1.username}`)
     res.body.data.should.have.property('datecreated')
     res.body.data.should.have.property('description')
     res.body.data.should.have.property('posts')

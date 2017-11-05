@@ -45,36 +45,19 @@ describe('Heartbeat', () => {
 
 const AddUser = (user, callback) => {
   chai.request(server).post('/users/').send(user).end((err, res) => {
-    should.not.exist(err)
-    res.should.have.status(201)
-    res.body.should.be.a('object')
-    res.body.should.have.property('errors')
-    res.body.errors.should.have.property('length').eql(0)
-    res.body.should.have.property('data')
-    callback(res.body.data.username)
+    VerifyValidResponse(err, res, () => callback(res.body.data.username), 201)
   })
 }
 
-const AddInvalidUser = (user, callback) => {
+const AddInvalidUser = (user, errors, callback) => {
   chai.request(server).post('/users/').send(user).end((err, res) => {
-    should.exist(err)
-    res.should.have.status(409)
-    res.body.should.be.a('object')
-    res.body.should.have.property('errors')
-    res.body.errors.length.should.be.eql(1)
-    callback()
+    VerifyInvalidResponse(err, res, errors, 409, callback)
   })
 }
 
 const LoginUser = (user, callback) => {
   chai.request(server).post('/users/login').send(user).end((err, res) => {
-    should.not.exist(err)
-    res.should.have.status(200)
-    res.body.should.be.a('object')
-    res.body.should.have.property('errors')
-    res.body.errors.length.should.be.eql(0)
-    res.body.should.have.property('data')
-    callback(res.body.data)
+    VerifyValidResponse(err, res, () => callback(res.body.data))
   })
 }
 
@@ -82,6 +65,29 @@ const EmptyDatabase = (callback) => {
   db.delete().from('users').run((err) => {
     if (err) { console.error(err) } else { callback() }
   })
+}
+
+const VerifyValidResponse = (err, res, callback, status = 200) => {
+  should.not.exist(err)
+  res.should.have.status(status)
+  res.body.should.be.a('object')
+  res.body.should.have.property('errors')
+  res.body.errors.length.should.be.eql(0)
+  res.body.should.have.property('data')
+  callback()
+}
+
+const VerifyInvalidResponse = (err, res, errors, status, callback) => {
+  should.exist(err)
+  res.should.have.status(status)
+  res.body.should.be.a('object')
+  res.body.should.have.property('errors')
+  res.body.errors.length.should.be.eql(errors.length)
+  errors.forEach((error, i) => {
+    res.body.errors[i].should.have.property('title')
+    res.body.errors[i].should.have.property('title').eql(error.title)
+  })
+  callback()
 }
 
 describe('Users', () => {
@@ -103,12 +109,7 @@ describe('Users', () => {
     }
 
     chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      should.exist(err)
-      res.should.have.status(401)
-      res.body.should.be.a('object')
-      res.body.should.have.property('errors')
-      res.body.errors.should.have.property('length').eql(1)
-      done()
+      VerifyInvalidResponse(err, res, [{title: 'Username is null'}], 401, done)
     })
   })
 
@@ -120,12 +121,7 @@ describe('Users', () => {
     }
 
     chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      should.exist(err)
-      res.should.have.status(401)
-      res.body.should.be.a('object')
-      res.body.should.have.property('errors')
-      res.body.errors.length.should.be.eql(1)
-      done()
+      VerifyInvalidResponse(err, res, [{title: 'Password is null'}], 401, done)
     })
   })
 
@@ -140,9 +136,7 @@ describe('Users', () => {
       }
 
       AddUser(user, () => {
-        AddInvalidUser(invalidUser, () => {
-          done()
-        })
+        AddInvalidUser(invalidUser, [{title: 'Username already exists'}], done)
       })
     })
 
@@ -156,37 +150,31 @@ describe('Users', () => {
       }
 
       AddUser(user, () => {
-        AddInvalidUser(invalidUser, () => {
-          done()
-        })
+        AddInvalidUser(invalidUser, [{title: 'Email already exists'}], done)
       })
     })
 
   it('GET /users/:username | Should give us the users info', (done) => {
     AddUser(user, () => {
       chai.request(server).get(`/users/${user.username}`).end((err, res) => {
-        should.not.exist(err)
-        res.should.have.status(202)
-        res.body.should.be.a('object')
-        res.body.should.have.property('errors')
-        res.body.errors.length.should.be.eql(0)
-        res.body.should.have.property('data')
-        res.body.data.should.have.property('name')
-        res.body.data.should.have.property('name').eql(`${user.name}`)
-        res.body.data.should.have.property('username')
-        res.body.data.should.have.property('username').eql(`${user.username}`)
-        res.body.data.should.have.property('datecreated')
-        res.body.data.should.have.property('description')
-        res.body.data.should.have.property('posts')
-        res.body.data.posts.should.be.a('array')
-        res.body.data.posts.length.should.be.eql(0)
-        res.body.data.should.have.property('followers')
-        res.body.data.followers.should.be.a('array')
-        res.body.data.followers.length.should.be.eql(0)
-        res.body.data.should.have.property('following')
-        res.body.data.following.should.be.a('array')
-        res.body.data.following.length.should.be.eql(0)
-        done()
+        VerifyValidResponse(err, res, () => {
+          res.body.data.should.have.property('name')
+          res.body.data.should.have.property('name').eql(`${user.name}`)
+          res.body.data.should.have.property('username')
+          res.body.data.should.have.property('username').eql(`${user.username}`)
+          res.body.data.should.have.property('datecreated')
+          res.body.data.should.have.property('description')
+          res.body.data.should.have.property('posts')
+          res.body.data.posts.should.be.a('array')
+          res.body.data.posts.length.should.be.eql(0)
+          res.body.data.should.have.property('followers')
+          res.body.data.followers.should.be.a('array')
+          res.body.data.followers.length.should.be.eql(0)
+          res.body.data.should.have.property('following')
+          res.body.data.following.should.be.a('array')
+          res.body.data.following.length.should.be.eql(0)
+          done()
+        }, 202)
       })
     })
   })
@@ -194,14 +182,10 @@ describe('Users', () => {
   it('POST /users/login | Should login user', (done) => {
     AddUser(user, () => {
       chai.request(server).post('/users/login').send(user).end((err, res) => {
-        should.not.exist(err)
-        res.should.have.status(200)
-        res.body.should.be.a('object')
-        res.body.should.have.property('errors')
-        res.body.errors.length.should.be.eql(0)
-        res.body.should.have.property('data')
-        res.body.data.should.be.a('string')
-        done()
+        VerifyValidResponse(err, res, () => {
+          res.body.data.should.be.a('string')
+          done()
+        })
       })
     })
   })
@@ -212,23 +196,15 @@ describe('Users', () => {
     AddUser(user, () => {
       LoginUser(user, (token) => {
         chai.request(server).put('/users/profile_picture').set('token', token).send({image_url: imageUrl}).end((err, res) => {
-          should.not.exist(err)
-          res.should.have.status(200)
-          res.body.should.be.a('object')
-          res.body.should.have.property('errors')
-          res.body.errors.length.should.be.eql(0)
-          res.body.should.have.property('data')
-          res.body.should.have.property('data').eql('Successfully updated your user profile')
-          chai.request(server).get(`/users/${user.username}`).end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(202)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.data.should.have.property('profile_picture_url')
-            res.body.data.should.have.property('profile_picture_url').eql(imageUrl)
-            done()
+          VerifyValidResponse(err, res, () => {
+            res.body.should.have.property('data').eql('Successfully updated your user profile')
+            chai.request(server).get(`/users/${user.username}`).end((err, res) => {
+              VerifyValidResponse(err, res, () => {
+                res.body.data.should.have.property('profile_picture_url')
+                res.body.data.should.have.property('profile_picture_url').eql(imageUrl)
+                done()
+              }, 202)
+            })
           })
         })
       })
@@ -243,23 +219,15 @@ describe('Users', () => {
       AddUser(user, () => {
         LoginUser(user, (token) => {
           chai.request(server).put('/users/background_picture').set('token', token).send({image_url: imageUrl}).end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(200)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.should.have.property('data').eql('Successfully updated your user profile')
-            chai.request(server).get(`/users/${user.username}`).end((err, res) => {
-              should.not.exist(err)
-              res.should.have.status(202)
-              res.body.should.be.a('object')
-              res.body.should.have.property('errors')
-              res.body.errors.length.should.be.eql(0)
-              res.body.should.have.property('data')
-              res.body.data.should.have.property('profile_background_url')
-              res.body.data.should.have.property('profile_background_url').eql(imageUrl)
-              done()
+            VerifyValidResponse(err, res, () => {
+              res.body.should.have.property('data').eql('Successfully updated your user profile')
+              chai.request(server).get(`/users/${user.username}`).end((err, res) => {
+                VerifyValidResponse(err, res, () => {
+                  res.body.data.should.have.property('profile_background_url')
+                  res.body.data.should.have.property('profile_background_url').eql(imageUrl)
+                  done()
+                }, 202)
+              })
             })
           })
         })
@@ -269,12 +237,7 @@ describe('Users', () => {
 
 const SubmitPost = (post, token, callback) => {
   chai.request(server).post('/posts').set('token', token).send(post).end((err, res) => {
-    should.not.exist(err)
-    res.should.have.status(200)
-    res.body.should.be.a('object')
-    res.body.should.have.property('errors')
-    res.body.errors.length.should.be.eql(0)
-    callback(res.body.data)
+    VerifyValidResponse(err, res, () => callback(res.body.data))
   })
 }
 describe('Posts', () => {
@@ -286,15 +249,11 @@ describe('Posts', () => {
 
   it('GET /posts | Should return empty list of posts', (done) => {
     chai.request(server).get('/posts').end((err, res) => {
-      should.not.exist(err)
-      res.should.have.status(200)
-      res.body.should.be.a('object')
-      res.body.should.have.property('errors')
-      res.body.errors.length.should.be.eql(0)
-      res.body.should.have.property('data')
-      res.body.data.should.be.a('array')
-      res.body.data.length.should.be.eql(0)
-      done()
+      VerifyValidResponse(err, res, () => {
+        res.body.data.should.be.a('array')
+        res.body.data.length.should.be.eql(0)
+        done()
+      })
     })
   })
 
@@ -303,22 +262,18 @@ describe('Posts', () => {
       LoginUser(user, (token) => {
         SubmitPost(post, token, () => {
           chai.request(server).get('/posts').end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(200)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.data.should.be.a('array')
-            res.body.data.length.should.be.eql(1)
-            res.body.data[0].should.have.property('description')
-            res.body.data[0].should.have.property('description').eql(post.description)
-            res.body.data[0].should.have.property('image_url')
-            res.body.data[0].should.have.property('image_url').eql(post.url)
-            res.body.data[0].should.have.property('username')
-            res.body.data[0].should.have.property('username').eql(user.username)
-            res.body.data[0].should.have.property('description')
-            done()
+            VerifyValidResponse(err, res, () => {
+              res.body.data.should.be.a('array')
+              res.body.data.length.should.be.eql(1)
+              res.body.data[0].should.have.property('description')
+              res.body.data[0].should.have.property('description').eql(post.description)
+              res.body.data[0].should.have.property('image_url')
+              res.body.data[0].should.have.property('image_url').eql(post.url)
+              res.body.data[0].should.have.property('username')
+              res.body.data[0].should.have.property('username').eql(user.username)
+              res.body.data[0].should.have.property('description')
+              done()
+            })
           })
         })
       })
@@ -327,16 +282,9 @@ describe('Posts', () => {
 
   it('POST /posts | Should not submit a new post when unauthorized', (done) => {
     AddUser(user, () => {
-      LoginUser(user, (token) => {
+      LoginUser(user, () => {
         chai.request(server).post('/posts').send(post).end((err, res) => {
-          should.exist(err)
-          res.should.have.status(401)
-          res.body.should.be.a('object')
-          res.body.should.have.property('errors')
-          res.body.errors.length.should.be.eql(1)
-          res.body.errors[0].should.have.property('title')
-          res.body.errors[0].should.have.property('title').eql('Bad token')
-          done()
+          VerifyInvalidResponse(err, res, [{title: 'Bad token'}], 401, done)
         })
       })
     })
@@ -347,17 +295,13 @@ describe('Posts', () => {
       LoginUser(user, (token) => {
         SubmitPost(post, token, (postInfo) => {
           chai.request(server).get(`/posts/id/${postInfo.id}`).end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(200)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.data.should.have.property('description')
-            res.body.data.should.have.property('description').eql(post.description)
-            res.body.data.should.have.property('image_url')
-            res.body.data.should.have.property('image_url').eql(post.url)
-            done()
+            VerifyValidResponse(err, res, () => {
+              res.body.data.should.have.property('description')
+              res.body.data.should.have.property('description').eql(post.description)
+              res.body.data.should.have.property('image_url')
+              res.body.data.should.have.property('image_url').eql(post.url)
+              done()
+            })
           })
         })
       })
@@ -369,14 +313,10 @@ describe('Posts', () => {
       LoginUser(user, (token) => {
         SubmitPost(post, token, (postInfo) => {
           chai.request(server).delete('/posts/').set('token', token).send({post: postInfo.id}).end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(200)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.should.have.property('data').eql(null)
-            done()
+            VerifyValidResponse(err, res, () => {
+              res.body.should.have.property('data').eql(null)
+              done()
+            })
           })
         })
       })
@@ -389,14 +329,7 @@ describe('Posts', () => {
         LoginUser(user, (token) => {
           SubmitPost(post, token, (postInfo) => {
             chai.request(server).delete('/posts/').send({post: postInfo.id}).end((err, res) => {
-              should.exist(err)
-              res.should.have.status(401)
-              res.body.should.be.a('object')
-              res.body.should.have.property('errors')
-              res.body.errors.length.should.be.eql(1)
-              res.body.errors[0].should.have.property('title')
-              res.body.errors[0].should.have.property('title').eql('Bad token')
-              done()
+              VerifyInvalidResponse(err, res, [{title: 'Bad token'}], 401, done)
             })
           })
         })
@@ -408,14 +341,10 @@ const FollowUser = (token, userIdToFollow, callback) => {
   chai.request(server).post('/follow').set('token', token).send({
     followUsername: userIdToFollow
   }).end((err, res) => {
-    should.not.exist(err)
-    res.should.have.status(200)
-    res.body.should.be.a('object')
-    res.body.should.have.property('errors')
-    res.body.errors.length.should.be.eql(0)
-    res.body.should.have.property('data')
-    res.body.should.have.property('data').eql('Now Following')
-    callback()
+    VerifyValidResponse(err, res, () => {
+      res.body.should.have.property('data').eql('Now Following')
+      callback()
+    })
   })
 }
 describe('Follow', () => {
@@ -429,15 +358,11 @@ describe('Follow', () => {
     'GET /follow/getAllFollowing/:userId | Should return empty list of following',
     (done) => {
       chai.request(server).get('/follow/getAllFollowing/1').end((err, res) => {
-        should.not.exist(err)
-        res.should.have.status(200)
-        res.body.should.be.a('object')
-        res.body.should.have.property('errors')
-        res.body.errors.length.should.be.eql(0)
-        res.body.should.have.property('data')
-        res.body.data.should.be.a('array')
-        res.body.data.length.should.be.eql(0)
-        done()
+        VerifyValidResponse(err, res, () => {
+          res.body.data.should.be.a('array')
+          res.body.data.length.should.be.eql(0)
+          done()
+        })
       })
     })
 
@@ -445,15 +370,11 @@ describe('Follow', () => {
     'GET /follow/getAllFollowers/:userId | Should return empty list of followers',
     (done) => {
       chai.request(server).get('/follow/getAllFollowing/1').end((err, res) => {
-        should.not.exist(err)
-        res.should.have.status(200)
-        res.body.should.be.a('object')
-        res.body.should.have.property('errors')
-        res.body.errors.length.should.be.eql(0)
-        res.body.should.have.property('data')
-        res.body.data.should.be.a('array')
-        res.body.data.length.should.be.eql(0)
-        done()
+        VerifyValidResponse(err, res, () => {
+          res.body.data.should.be.a('array')
+          res.body.data.length.should.be.eql(0)
+          done()
+        })
       })
     })
 
@@ -464,14 +385,10 @@ describe('Follow', () => {
           chai.request(server).post('/follow').set('token', token).send({
             followUsername: secondUsername
           }).end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(200)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.should.have.property('data').eql('Now Following')
-            done()
+            VerifyValidResponse(err, res, () => {
+              res.body.should.have.property('data').eql('Now Following')
+              done()
+            })
           })
         })
       })
@@ -485,14 +402,7 @@ describe('Follow', () => {
           chai.request(server).post('/follow').set('token', token).send({
             followUsername: 'rushil'
           }).end((err, res) => {
-            should.exist(err)
-            res.should.have.status(401)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(1)
-            res.body.errors[0].should.have.property('title')
-            res.body.errors[0].should.have.property('title').eql('User doesn\'t exist')
-            done()
+            VerifyInvalidResponse(err, res, [{title: 'User doesn\'t exist'}], 401, done)
           })
         })
       })
@@ -507,14 +417,10 @@ describe('Follow', () => {
               chai.request(server).post('/follow').set('token', token).send({
                 followUsername: secondUsername
               }).end((err, res) => {
-                should.not.exist(err)
-                res.should.have.status(200)
-                res.body.should.be.a('object')
-                res.body.should.have.property('errors')
-                res.body.errors.length.should.be.eql(0)
-                res.body.should.have.property('data')
-                res.body.should.have.property('data').eql('Already following')
-                done()
+                VerifyValidResponse(err, res, () => {
+                  res.body.should.have.property('data').eql('Already following')
+                  done()
+                })
               })
             })
           })
@@ -530,14 +436,10 @@ describe('Follow', () => {
             chai.request(server).delete('/follow').set('token', token).send({
               unfollowUsername: secondUsername
             }).end((err, res) => {
-              should.not.exist(err)
-              res.should.have.status(200)
-              res.body.should.be.a('object')
-              res.body.should.have.property('errors')
-              res.body.errors.length.should.be.eql(0)
-              res.body.should.have.property('data')
-              res.body.should.have.property('data').eql(`You have unfollowed ${secondUsername}`)
-              done()
+              VerifyValidResponse(err, res, () => {
+                res.body.should.have.property('data').eql(`You have unfollowed ${secondUsername}`)
+                done()
+              })
             })
           })
         })
@@ -553,14 +455,10 @@ describe('Follow', () => {
           chai.request(server).delete('/follow').set('token', token).send({
             unfollowUsername: 'rushil'
           }).end((err, res) => {
-            should.not.exist(err)
-            res.should.have.status(200)
-            res.body.should.be.a('object')
-            res.body.should.have.property('errors')
-            res.body.errors.length.should.be.eql(0)
-            res.body.should.have.property('data')
-            res.body.should.have.property('data').eql(`You have unfollowed rushil`)
-            done()
+            VerifyValidResponse(err, res, () => {
+              res.body.should.have.property('data').eql('You have unfollowed rushil')
+              done()
+            })
           })
         })
       })
@@ -574,30 +472,26 @@ describe('Follow', () => {
           LoginUser(user, (token) => {
             FollowUser(token, secondUsername, () => {
               chai.request(server).get(`/users/${user2.username}`).end((err, res) => {
-                should.not.exist(err)
-                res.should.have.status(202)
-                res.body.should.be.a('object')
-                res.body.should.have.property('errors')
-                res.body.errors.length.should.be.eql(0)
-                res.body.should.have.property('data')
-                res.body.data.should.have.property('name')
-                res.body.data.should.have.property('name').eql(`${user2.name}`)
-                res.body.data.should.have.property('username')
-                res.body.data.should.have.property('username').eql(`${user2.username}`)
-                res.body.data.should.have.property('datecreated')
-                res.body.data.should.have.property('description')
-                res.body.data.should.have.property('posts')
-                res.body.data.posts.should.be.a('array')
-                res.body.data.posts.length.should.be.eql(0)
-                res.body.data.should.have.property('followers')
-                res.body.data.followers.should.be.a('array')
-                res.body.data.followers.length.should.be.eql(1)
-                res.body.data.followers[0].should.have.property('username')
-                res.body.data.followers[0].should.have.property('username').eql(firstUsername)
-                res.body.data.should.have.property('following')
-                res.body.data.following.should.be.a('array')
-                res.body.data.following.length.should.be.eql(0)
-                done()
+                VerifyValidResponse(err, res, () => {
+                  res.body.data.should.have.property('name')
+                  res.body.data.should.have.property('name').eql(`${user2.name}`)
+                  res.body.data.should.have.property('username')
+                  res.body.data.should.have.property('username').eql(`${user2.username}`)
+                  res.body.data.should.have.property('datecreated')
+                  res.body.data.should.have.property('description')
+                  res.body.data.should.have.property('posts')
+                  res.body.data.posts.should.be.a('array')
+                  res.body.data.posts.length.should.be.eql(0)
+                  res.body.data.should.have.property('followers')
+                  res.body.data.followers.should.be.a('array')
+                  res.body.data.followers.length.should.be.eql(1)
+                  res.body.data.followers[0].should.have.property('username')
+                  res.body.data.followers[0].should.have.property('username').eql(firstUsername)
+                  res.body.data.should.have.property('following')
+                  res.body.data.following.should.be.a('array')
+                  res.body.data.following.length.should.be.eql(0)
+                  done()
+                }, 202)
               })
             })
           })
@@ -612,30 +506,26 @@ describe('Follow', () => {
           LoginUser(user, (token) => {
             FollowUser(token, secondUsername, () => {
               chai.request(server).get(`/users/${user.username}`).end((err, res) => {
-                should.not.exist(err)
-                res.should.have.status(202)
-                res.body.should.be.a('object')
-                res.body.should.have.property('errors')
-                res.body.errors.length.should.be.eql(0)
-                res.body.should.have.property('data')
-                res.body.data.should.have.property('name')
-                res.body.data.should.have.property('name').eql(`${user.name}`)
-                res.body.data.should.have.property('username')
-                res.body.data.should.have.property('username').eql(`${user.username}`)
-                res.body.data.should.have.property('datecreated')
-                res.body.data.should.have.property('description')
-                res.body.data.should.have.property('posts')
-                res.body.data.posts.should.be.a('array')
-                res.body.data.posts.length.should.be.eql(0)
-                res.body.data.should.have.property('followers')
-                res.body.data.followers.should.be.a('array')
-                res.body.data.followers.length.should.be.eql(0)
-                res.body.data.should.have.property('following')
-                res.body.data.following.should.be.a('array')
-                res.body.data.following.length.should.be.eql(1)
-                res.body.data.following[0].should.have.property('username')
-                res.body.data.following[0].should.have.property('username').eql(secondUsername)
-                done()
+                VerifyValidResponse(err, res, () => {
+                  res.body.data.should.have.property('name')
+                  res.body.data.should.have.property('name').eql(`${user.name}`)
+                  res.body.data.should.have.property('username')
+                  res.body.data.should.have.property('username').eql(`${user.username}`)
+                  res.body.data.should.have.property('datecreated')
+                  res.body.data.should.have.property('description')
+                  res.body.data.should.have.property('posts')
+                  res.body.data.posts.should.be.a('array')
+                  res.body.data.posts.length.should.be.eql(0)
+                  res.body.data.should.have.property('followers')
+                  res.body.data.followers.should.be.a('array')
+                  res.body.data.followers.length.should.be.eql(0)
+                  res.body.data.should.have.property('following')
+                  res.body.data.following.should.be.a('array')
+                  res.body.data.following.length.should.be.eql(1)
+                  res.body.data.following[0].should.have.property('username')
+                  res.body.data.following[0].should.have.property('username').eql(secondUsername)
+                  done()
+                }, 202)
               })
             })
           })

@@ -74,21 +74,19 @@ const EmptyDatabase = (callback) => {
 const VerifyValidResponse = (res, status = 200) => {
   res.should.have.status(status)
   res.body.should.be.a('object')
-  res.body.should.have.property('errors')
-  res.body.errors.length.should.be.eql(0)
+  res.body.should.have.property('error')
+  res.body.error.should.be.eql({})
   res.body.should.have.property('data')
 }
 
-const VerifyInvalidResponse = (err, res, errors, status, callback) => {
+const VerifyInvalidResponse = (err, res, error, status, callback) => {
   should.exist(err)
   res.should.have.status(status)
   res.body.should.be.a('object')
-  res.body.should.have.property('errors')
-  res.body.errors.length.should.be.eql(errors.length)
-  errors.forEach((error, i) => {
-    res.body.errors[i].should.have.property('title')
-    res.body.errors[i].should.have.property('title').eql(error.title)
-  })
+  res.body.should.have.property('error')
+  res.body.error.should.be.a('object')
+  res.body.error.should.have.property('title')
+  res.body.error.should.have.property('title').eql(error.title)
   callback()
 }
 
@@ -109,7 +107,7 @@ describe('Users', () => {
     }
 
     chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      VerifyInvalidResponse(err, res, [{title: 'Username is null'}], 401, () => {})
+      VerifyInvalidResponse(err, res, {title: 'Username is null'}, 401, () => {})
     })
   })
 
@@ -121,7 +119,7 @@ describe('Users', () => {
     }
 
     chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      VerifyInvalidResponse(err, res, [{title: 'Password is null'}], 401, done)
+      VerifyInvalidResponse(err, res, {title: 'Password is null'}, 400, done)
     })
   })
 
@@ -136,7 +134,7 @@ describe('Users', () => {
       }
 
       AddUser(user1, () => {
-        AddInvalidUser(invalidUser, [{title: 'Username already exists'}], done)
+        AddInvalidUser(invalidUser, {title: 'Username already exists'}, done)
       })
     })
 
@@ -150,7 +148,7 @@ describe('Users', () => {
       }
 
       AddUser(user1, () => {
-        AddInvalidUser(invalidUser, [{title: 'Email already exists'}], done)
+        AddInvalidUser(invalidUser, {title: 'Email already exists'}, done)
       })
     })
 
@@ -257,7 +255,7 @@ describe('Posts', () => {
     AddUser(user1, () => {
       LoginUser(user1, () => {
         chai.request(server).post('/posts').send(post).end((err, res) => {
-          VerifyInvalidResponse(err, res, [{title: 'Bad token'}], 401, done)
+          VerifyInvalidResponse(err, res, {title: 'Bad token'}, 401, done)
         })
       })
     })
@@ -289,7 +287,7 @@ describe('Posts', () => {
       LoginUser(user1, (token) => {
         SubmitPost(post, token, (postInfo) => {
           chai.request(server).delete('/posts/').send({post: postInfo.id}).end((err, res) => {
-            VerifyInvalidResponse(err, res, [{title: 'Bad token'}], 401, done)
+            VerifyInvalidResponse(err, res, {title: 'Bad token'}, 401, done)
           })
         })
       })
@@ -336,7 +334,7 @@ describe('Follow', () => {
     AddUser(user1, () => {
       LoginUser(user1, (token) => {
         chai.request(server).post('/follow').set('token', token).send({followUsername: 'rushil'}).end((err, res) => {
-          VerifyInvalidResponse(err, res, [{title: 'User doesn\'t exist'}], 401, done)
+          VerifyInvalidResponse(err, res, {title: 'User doesn\'t exist'}, 401, done)
         })
       })
     })

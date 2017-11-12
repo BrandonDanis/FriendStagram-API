@@ -1,7 +1,7 @@
 const cfg = require('./config')
 const jwt = require('jwt-simple')
 const user = require('./model/users_model')
-const {Error, ErrorResponse} = require('./response-types')
+const Response = require('./response-types')
 
 // eslint-disable-next-line
 module.exports.authenticate = async (req, res, next) => {
@@ -15,43 +15,33 @@ module.exports.authenticate = async (req, res, next) => {
       next()
     } catch (e) {
       console.error(e)
+      let response = (res, error) => console.error(error)
       switch (e.message) {
         case 'User not found':
-          return res.status(404).json(new ErrorResponse(
-            [new Error('User not found')])
-          )
+          response = Response.NotFound
+        // eslint-disable-next-line no-fallthrough
         case 'User not logged in':
-          return res.status(412).json(new ErrorResponse(
-            [new Error('User not logged in')]
-          ))
+          response = Response.PreconditionFailed
+          return response(res, {title: e.message})
         default:
-          return res.status(500).json(new ErrorResponse(
-            [new Error('An error occurred authenticating')]
-          ))
+          return Response.InternalServerError(res, {title: 'An error occurred authenticating'})
       }
     }
   } catch (e) {
     console.error(e)
-    return res.status(401).json(new ErrorResponse(
-      [new Error('Bad token')]
-    ))
+    return Response.Unauthorized(res, {title: 'Bad token'})
   }
 }
 
-module.exports.authorizedToDelete = async (req, res, next) => {
+module.exports.authorizedToDelete = async ({body: {post}, user: {id}}, res, next) => {
   try {
-    await user.authorizedToDelete(req.body.post, req.user.id)
+    await user.authorizedToDelete(post, id)
     next()
   } catch (e) {
     console.error(e)
     if (e.message.indexOf('Expected a row') > -1) {
-      res.status(401).json(new ErrorResponse(
-        [new Error('User does not have the right to delete this post')]
-      ))
-    } else {
-      res.status(500).json(new ErrorResponse(
-        [new Error('An error occurred authenticating')]
-      ))
+      return Response.Unauthorized(res, {title: 'User does not have the right to delete this post'})
     }
+    return Response.InternalServerError(res, {title: 'An error occurred authenticating'})
   }
 }

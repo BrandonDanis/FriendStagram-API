@@ -1,6 +1,6 @@
 const postModel = require('../model/posts_model')
 const utils = require('../utils/util')
-const {Response, Error, ErrorResponse} = require('../response-types')
+const Response = require('../response-types')
 
 module.exports.addPosts = async (
   {body: {url = null, description = null, tags = null}, user = null}, res) => {
@@ -15,16 +15,14 @@ module.exports.addPosts = async (
 
   if (!errors.isEmpty()) {
     errors = errors.map(error => new Error(error))
-    res.status(400).json(new ErrorResponse(errors))
+    return Response.BadRequest(res, errors)
   } else {
     try {
       const post = await postModel.addPosts(description, url, tags, user.id)
-      res.status(200).json(new Response(post))
+      return Response.OK(res, post)
     } catch (e) {
       console.error(e)
-      res.status(500).json(new ErrorResponse(
-        [new Error('Failed to create post')]
-      ))
+      return Response.InternalServerError(res, {title: 'Failed to create post'})
     }
   }
 }
@@ -33,12 +31,10 @@ module.exports.getPostByID = async ({params: id = null}, res) => {
   try {
     const [post, user] = await postModel.getPostByID(id)
     post.user_info = user
-    res.status(200).json(new Response(post))
+    return Response.OK(res, post)
   } catch (e) {
     console.error(e)
-    res.status(404).json(new ErrorResponse(
-      new Error('Failed to find post')
-    ))
+    return Response.NotFound(res, {title: 'Failed to find post'})
   }
 }
 
@@ -68,23 +64,19 @@ module.exports.search = async (req, res) => {
 
   try {
     const posts = await postModel.search(searchQuery)
-    res.status(200).json(new Response(posts))
+    return Response.OK(res, posts)
   } catch (e) {
     console.error(e)
-    res.status(500).json(new ErrorResponse(
-      [new Error('Failed to search for posts')]
-    ))
+    return Response.InternalServerError(res, {title: 'Failed to search for posts'})
   }
 }
 
 module.exports.delete = async ({body: {post = null}}, res) => {
   try {
     await postModel.delete(post)
-    res.status(200).json(new Response(null))
+    return Response.OK(res, null)
   } catch (e) {
     console.error(e)
-    res.status(404).json(new ErrorResponse(
-      [new Error('Failed to delete post')]
-    ))
+    return Response.NotFound(res, {title: 'Failed to delete post'})
   }
 }

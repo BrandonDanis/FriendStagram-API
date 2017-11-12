@@ -62,7 +62,7 @@ module.exports.login = async ({body}, res, next) => {
   }
 
   try {
-    const {userID, id: uuid} = await userModel.login(username, password)
+    const {id: uuid, user_id: userID} = await userModel.login(username, password)
     const payload = {
       id: userID,
       timestamp: new Date(),

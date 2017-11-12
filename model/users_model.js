@@ -13,9 +13,7 @@ module.exports.register = async (username, unHashedPassword, email, name) => {
   const allTheSalt = await bcrypt.genSalt(saltRounds)
   const password = await bcrypt.hash(unHashedPassword, allTheSalt, null)
   try {
-    return await db.insert('users', {
-      username, password, email, name
-    }).returning('*').row()
+    return await db.insert('users', {username, password, email, name}).returning('*').row()
   } catch (e) {
     if (e.code === '23505') {
       throw FSError.fieldAlreadyExists({title: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`})
@@ -81,13 +79,13 @@ module.exports.authenticate = async (id, sessionID) => {
   try {
     await db.select('id').from('users').where({id}).row()
   } catch (e) {
-    throw new Error('User not found')
+    throw FSError.userDoesNotExist()
   }
 
   try {
     await db.select('id').from('users_sessions').where({id: sessionID}).row()
   } catch (e) {
-    throw new Error('User not logged in')
+    throw FSError.userIsNotLoggedIn()
   }
 }
 

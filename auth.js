@@ -1,7 +1,7 @@
 const cfg = require('./config')
 const jwt = require('jwt-simple')
 const user = require('./model/users_model')
-const {Response, FSError} = require('./response-types')
+const {FSError} = require('./response-types')
 
 // eslint-disable-next-line
 module.exports.authenticate = async (req, res, next) => {
@@ -14,15 +14,7 @@ module.exports.authenticate = async (req, res, next) => {
       req.user = {id, uuid}
       next()
     } catch (e) {
-      let response = FSError.unknown
-      switch (e.message) {
-        case 'User not found':
-          response = FSError.userDoesNotExist
-        // eslint-disable-next-line no-fallthrough
-        case 'User not logged in':
-          response = FSError.userIsNotLoggedIn
-          return next(response(e.message))
-      }
+      next(e)
     }
   } catch (e) {
     console.error(e)

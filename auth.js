@@ -1,7 +1,7 @@
 const cfg = require('./config')
 const jwt = require('jwt-simple')
 const user = require('./model/users_model')
-const Response = require('./response-types')
+const {Response, FSError} = require('./response-types')
 
 // eslint-disable-next-line
 module.exports.authenticate = async (req, res, next) => {
@@ -14,22 +14,19 @@ module.exports.authenticate = async (req, res, next) => {
       req.user = {id, uuid}
       next()
     } catch (e) {
-      console.error(e)
-      let response = (res, error) => console.error(error)
+      let response = FSError.unknown
       switch (e.message) {
         case 'User not found':
-          response = Response.NotFound
+          response = FSError.userDoesNotExist
         // eslint-disable-next-line no-fallthrough
         case 'User not logged in':
-          response = Response.PreconditionFailed
-          return response(res, {title: e.message})
-        default:
-          return Response.InternalServerError(res, {title: 'An error occurred authenticating'})
+          response = FSError.userIsNotLoggedIn
+          return next(response(e.message))
       }
     }
   } catch (e) {
     console.error(e)
-    return Response.Unauthorized(res, {title: 'Bad token'})
+    next(FSError.unauthorized())
   }
 }
 
@@ -38,10 +35,6 @@ module.exports.authorizedToDelete = async ({body: {post}, user: {id}}, res, next
     await user.authorizedToDelete(post, id)
     next()
   } catch (e) {
-    console.error(e)
-    if (e.message.indexOf('Expected a row') > -1) {
-      return Response.Unauthorized(res, {title: 'User does not have the right to delete this post'})
-    }
-    return Response.InternalServerError(res, {title: 'An error occurred authenticating'})
+    next(e)
   }
 }

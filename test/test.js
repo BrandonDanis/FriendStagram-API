@@ -7,6 +7,7 @@ const chai = require('chai')
 const chaiHttp = require('chai-http')
 const server = require('../index')
 const beforeEach = require('mocha').beforeEach
+const {FSError} = require('../response-types')
 
 const should = chai.should()
 
@@ -44,14 +45,14 @@ const AddUser = async (user, callback) => {
   const res = await chai.request(server).post('/users/').send(user)
   res.should.have.status(201)
   if (callback) {
-    callback()
+    return callback()
   }
   return res.body.data.username
 }
 
-const AddInvalidUser = (user, errors, callback) => {
+const AddInvalidUser = (user, error, callback) => {
   chai.request(server).post('/users/').send(user).end((err, res) => {
-    VerifyInvalidResponse(err, res, errors, 409, callback)
+    VerifyInvalidResponse(err, res, error, callback)
   })
 }
 
@@ -79,14 +80,16 @@ const VerifyValidResponse = (res, status = 200) => {
   res.body.should.have.property('data')
 }
 
-const VerifyInvalidResponse = (err, res, error, status, callback) => {
+const VerifyInvalidResponse = (err, res, error, callback) => {
   should.exist(err)
-  res.should.have.status(status)
+  res.should.have.status(error.status)
   res.body.should.be.a('object')
   res.body.should.have.property('error')
   res.body.error.should.be.a('object')
+  res.body.error.should.have.property('code')
   res.body.error.should.have.property('title')
-  res.body.error.should.have.property('title').eql(error.title)
+  res.body.error.code.should.be.eql(error.code)
+  res.body.error.title.should.be.eql(error.title)
   callback()
 }
 
@@ -99,7 +102,7 @@ describe('Users', () => {
     await AddUser(user1)
   })
 
-  it('POST /users | Should not create a user with no username', async () => {
+  it('POST /users | Should not create a user with no username', (done) => {
     const invalidUser = {
       password: 'brando',
       email: 'brando1@brando.com',
@@ -107,7 +110,7 @@ describe('Users', () => {
     }
 
     chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      VerifyInvalidResponse(err, res, {title: 'Username is null'}, 401, () => {})
+      VerifyInvalidResponse(err, res, new FSError({code: 'FS-ERR-2', title: 'Username is invalid', status: '400'}), done)
     })
   })
 
@@ -119,7 +122,7 @@ describe('Users', () => {
     }
 
     chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      VerifyInvalidResponse(err, res, {title: 'Password is null'}, 400, done)
+      VerifyInvalidResponse(err, res, new FSError({code: 'FS-ERR-2', title: 'Password is invalid', status: '400'}), done)
     })
   })
 
@@ -134,7 +137,7 @@ describe('Users', () => {
       }
 
       AddUser(user1, () => {
-        AddInvalidUser(invalidUser, {title: 'Username already exists'}, done)
+        AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Username already exists', status: '409'}), done)
       })
     })
 
@@ -148,7 +151,7 @@ describe('Users', () => {
       }
 
       AddUser(user1, () => {
-        AddInvalidUser(invalidUser, {title: 'Email already exists'}, done)
+        AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Email already exists', status: '409'}), done)
       })
     })
 
@@ -255,7 +258,7 @@ describe('Posts', () => {
     AddUser(user1, () => {
       LoginUser(user1, () => {
         chai.request(server).post('/posts').send(post).end((err, res) => {
-          VerifyInvalidResponse(err, res, {title: 'Bad token'}, 401, done)
+          VerifyInvalidResponse(err, res, new FSError({code: 'FS-ERR-4', title: 'Bad token', status: '401'}), done)
         })
       })
     })
@@ -287,7 +290,7 @@ describe('Posts', () => {
       LoginUser(user1, (token) => {
         SubmitPost(post, token, (postInfo) => {
           chai.request(server).delete('/posts/').send({post: postInfo.id}).end((err, res) => {
-            VerifyInvalidResponse(err, res, {title: 'Bad token'}, 401, done)
+            VerifyInvalidResponse(err, res, new FSError({code: 'FS-ERR-4', title: 'Bad token', status: '401'}), done)
           })
         })
       })
@@ -334,7 +337,7 @@ describe('Follow', () => {
     AddUser(user1, () => {
       LoginUser(user1, (token) => {
         chai.request(server).post('/follow').set('token', token).send({followUsername: 'rushil'}).end((err, res) => {
-          VerifyInvalidResponse(err, res, {title: 'User doesn\'t exist'}, 401, done)
+          VerifyInvalidResponse(err, res, new FSError({code: 'FS-ERR-1', title: 'User doesn\'t exist', status: '401'}), done)
         })
       })
     })

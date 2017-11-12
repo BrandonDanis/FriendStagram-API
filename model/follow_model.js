@@ -1,6 +1,6 @@
 const config = require('../config')
-const db = require('pg-bricks')
-  .configure(config[process.env.NODE_ENV || 'development'])
+const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development'])
+const {FSError} = require('../response-types')
 
 // TODO: ensure that followeeID is an actual valid id
 module.exports.followUser = async (followerId, followeeUsername) => {
@@ -12,20 +12,13 @@ module.exports.followUser = async (followerId, followeeUsername) => {
   } catch (e) {
     if (e.message === 'Expected a row, none found') {
       try {
-        await db.raw(
-          'INSERT INTO users_follows VALUES ($1, (SELECT id FROM users WHERE username = $2))',
-          [followerId, followeeUsername]).run()
+        await db.raw('INSERT INTO users_follows VALUES ($1, (SELECT id FROM users WHERE username = $2))', [followerId, followeeUsername]).run()
         return 'Now Following'
       } catch (err) {
         if (err.code === '23502') {
-          throw new Error('User doesn\'t exist')
-        } else {
-          throw new Error('Error while attempting to follow')
+          throw FSError.userDoesNotExist({status: '401'})
         }
       }
-    } else {
-      console.error(e)
-      throw new Error('Error while attempting to follow')
     }
   }
 }

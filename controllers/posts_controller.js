@@ -1,44 +1,36 @@
 const postModel = require('../model/posts_model')
 const utils = require('../utils/util')
-const Response = require('../response-types')
+const {Response, FSError} = require('../response-types')
 
-module.exports.addPosts = async (
-  {body: {url = null, description = null, tags = null}, user = null}, res) => {
-  let errors = []
+module.exports.addPosts = async ({body, user = null}, res, next) => {
+  const {url = null, description = null, tags = null} = body
 
-  if (utils.isEmpty(user.id)) {
-    errors.push('User ID is Null')
-  }
-  if (utils.isEmpty(url)) {
-    errors.push('URL is Null')
-  }
-
+  let errors = utils.getMissingKeys(user, [{key: 'id', name: 'user ID'}])
+  errors = errors.concat(utils.getMissingKeys(body, [{key: 'url', name: 'URL'}]))
   if (!errors.isEmpty()) {
-    errors = errors.map(error => new Error(error))
-    return Response.BadRequest(res, errors)
-  } else {
-    try {
-      const post = await postModel.addPosts(description, url, tags, user.id)
-      return Response.OK(res, post)
-    } catch (e) {
-      console.error(e)
-      return Response.InternalServerError(res, {title: 'Failed to create post'})
-    }
+    return next(FSError.missingParameters({errors}))
+  }
+
+  try {
+    const post = await postModel.addPosts(description, url, tags, user.id)
+    return Response.OK(res, post)
+  } catch (e) {
+    next(e)
   }
 }
 
-module.exports.getPostByID = async ({params: id = null}, res) => {
+module.exports.getPostByID = async ({params: id = null}, res, next) => {
   try {
     const [post, user] = await postModel.getPostByID(id)
     post.user_info = user
     return Response.OK(res, post)
   } catch (e) {
     console.error(e)
-    return Response.NotFound(res, {title: 'Failed to find post'})
+    next(e)
   }
 }
 
-module.exports.search = async (req, res) => {
+module.exports.search = async (req, res, next) => {
   let {page} = req.query
   const {limit, sort, tags} = req.query
   const searchQuery = {}
@@ -66,17 +58,15 @@ module.exports.search = async (req, res) => {
     const posts = await postModel.search(searchQuery)
     return Response.OK(res, posts)
   } catch (e) {
-    console.error(e)
-    return Response.InternalServerError(res, {title: 'Failed to search for posts'})
+    next(e)
   }
 }
 
-module.exports.delete = async ({body: {post = null}}, res) => {
+module.exports.delete = async ({body: {post = null}}, res, next) => {
   try {
     await postModel.delete(post)
     return Response.OK(res, null)
   } catch (e) {
-    console.error(e)
-    return Response.NotFound(res, {title: 'Failed to delete post'})
+    next(e)
   }
 }

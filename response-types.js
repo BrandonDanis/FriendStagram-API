@@ -1,7 +1,7 @@
 const statuses = require('statuses')
 const util = require('./utils/util')
 
-const codes = [200, 201, 202, 500]
+const codes = [200, 201, 202]
 
 class FSError extends Error {
   constructor ({code, title, status = '500'}, extraProps = {}) {
@@ -39,18 +39,16 @@ class FSError extends Error {
     return new FSError({code: 'FS-ERR-6', title, status})
   }
 
-  static unknown ({title, status = '500'}) {
+  static unknown ({title = 'An error occurred', status = '500'} = {}) {
     return new FSError({code: 'FS-ERR-7', title, status})
   }
 }
 
 // Only created like this for code completion
-// noinspection JSUnusedAssignment
 let Response = {
   OK: sendFakeResponse,
   Created: sendFakeResponse,
-  Accepted: sendFakeResponse,
-  InternalServerError: sendFakeError
+  Accepted: sendFakeResponse
 }
 Response = statuses.codes.filter(code => codes.some(usedCode => code === usedCode)).map(code => {
   // Generates each function
@@ -75,10 +73,6 @@ Response = statuses.codes.filter(code => codes.some(usedCode => code === usedCod
 
 function sendFakeResponse (res, data) {
   return 200
-}
-
-function sendFakeError (res, error) {
-  return 500
 }
 
 module.exports = {Response, FSError}

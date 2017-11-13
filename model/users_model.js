@@ -16,7 +16,7 @@ module.exports.register = async (username, unHashedPassword, email, name) => {
     return await db.insert('users', {username, password, email, name}).returning('*').row()
   } catch (e) {
     if (e.code === '23505') {
-      throw FSError.fieldAlreadyExists({title: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`})
+      throw FSError.fieldAlreadyExists({detail: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`})
     }
   }
 }
@@ -65,7 +65,7 @@ module.exports.findUser = async (username) => {
     return Promise.all([userPromise, postsPromise, followersPromise, followingPromise])
   } catch (e) {
     if (e.message === 'Expected a row, none found') { // user not found
-      throw FSError.userDoesNotExist({title: 'User not found'})
+      throw FSError.userDoesNotExist({detail: 'User not found'})
     }
   }
 }
@@ -133,15 +133,13 @@ module.exports.authorizedToDelete = async (postID, id) => {
     await db.select('user_id').from('posts').where({id: postID, user_id: id}).row()
   } catch (e) {
     if (e.message.indexOf('Expected a row') > -1) {
-      throw FSError.unauthorized({title: 'User does not have the right to delete this post'})
+      throw FSError.unauthorized({detail: 'User does not have the right to delete this post'})
     }
   }
 }
 
 module.exports.delete = id => db.delete().from('users').where({id}).run()
 
-module.exports.updateProfilePicture = (userId, imageURL) => db.update('users',
-  {profile_picture_url: imageURL}).where('id', userId).run()
+module.exports.updateProfilePicture = (userId, imageURL) => db.update('users', {profile_picture_url: imageURL}).where('id', userId).run()
 
-module.exports.updateBackgroundPicture = (userId, imageURL) => db.update(
-  'users', {profile_background_url: imageURL}).where('id', userId).run()
+module.exports.updateBackgroundPicture = (userId, imageURL) => db.update('users', {profile_background_url: imageURL}).where('id', userId).run()

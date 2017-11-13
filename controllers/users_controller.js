@@ -71,14 +71,10 @@ module.exports.login = async ({body}, res, next) => {
     const token = jwt.encode(payload, cfg.jwtSecret)
     return Response.OK(res, token)
   } catch (e) {
-    let error = ''
     if (e.message === 'Require key') {
-      error = 'Invalid signature'
       console.error('jwtSecret is missing')
-    } else {
-      error = 'An error occurred trying to verify you'
     }
-    next(FSError.unknown({title: error}))
+    next(FSError.unknown())
   }
 }
 

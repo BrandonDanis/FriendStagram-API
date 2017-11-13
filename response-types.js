@@ -4,43 +4,44 @@ const util = require('./utils/util')
 const codes = [200, 201, 202]
 
 class FSError extends Error {
-  constructor ({code, title, status = '500'}, extraProps = {}) {
-    super(title)
+  constructor ({code, title, detail = '', status = '500'}, extraProps = {}) {
+    super(detail)
     this.code = code
     this.title = title
     this.status = status
+    this.detail = detail
     Object.keys(extraProps).forEach(key => {
       this[key] = extraProps[key]
     })
   }
 
-  static userDoesNotExist ({title = 'User doesn\'t exist', status = '404'} = {}) {
-    return new FSError({code: 'FS-ERR-1', title, status})
+  static unknown () {
+    return new FSError({code: 'FS-ERR-0', title: 'An error occurred'})
+  }
+
+  static userDoesNotExist ({detail = '', status = '404'} = {}) {
+    return new FSError({code: 'FS-ERR-1', title: 'User doesn\'t exist', detail, status})
   }
 
   static missingParameters ({errors, status = '400'}) {
     errors[0] = util.capitalize(errors[0])
-    return new FSError({code: 'FS-ERR-2', title: `${errors.join(', ')} is invalid`, status})
+    return new FSError({code: 'FS-ERR-2', title: 'Missing parameters', detail: `${errors.join(', ')} is invalid`, status})
   }
 
-  static fieldAlreadyExists ({title, status = '409'}) {
-    return new FSError({code: 'FS-ERR-3', title, status})
+  static fieldAlreadyExists ({detail, status = '409'}) {
+    return new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail, status})
   }
 
-  static unauthorized ({title = 'Bad token', status = '401'} = {}) {
-    return new FSError({code: 'FS-ERR-4', title, status})
+  static unauthorized ({detail = '', status = '401'} = {}) {
+    return new FSError({code: 'FS-ERR-4', title: 'Bad token', detail, status})
   }
 
-  static invalidPassword ({title = 'Invalid password', status = '403'} = {}) {
-    return new FSError({code: 'FS-ERR-5', title, status})
+  static invalidPassword ({status = '403'} = {}) {
+    return new FSError({code: 'FS-ERR-5', title: 'Invalid password', status})
   }
 
-  static userIsNotLoggedIn ({title = 'User is not logged in', status = '412'} = {}) {
-    return new FSError({code: 'FS-ERR-6', title, status})
-  }
-
-  static unknown ({title = 'An error occurred', status = '500'} = {}) {
-    return new FSError({code: 'FS-ERR-7', title, status})
+  static userIsNotLoggedIn ({status = '412'} = {}) {
+    return new FSError({code: 'FS-ERR-6', title: 'User is not logged in', status})
   }
 }
 

@@ -80,8 +80,10 @@ const VerifyInvalidResponse = (res, error) => {
   res.body.error.should.be.a('object')
   res.body.error.should.have.property('code')
   res.body.error.should.have.property('title')
+  res.body.error.should.have.property('detail')
   res.body.error.code.should.be.eql(error.code)
   res.body.error.title.should.be.eql(error.title)
+  res.body.error.detail.should.be.eql(error.detail)
 }
 
 describe('Users', () => {
@@ -101,7 +103,7 @@ describe('Users', () => {
     }
 
     const res = await chai.request(server).post('/users/').send(invalidUser)
-    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-2', title: 'Username is invalid', status: '400'}))
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-2', title: 'Missing parameters', detail: 'Username is invalid', status: '400'}))
   })
 
   it('POST /users | Should not create a user with no password', async () => {
@@ -112,7 +114,7 @@ describe('Users', () => {
     }
 
     const res = await chai.request(server).post('/users/').send(invalidUser)
-    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-2', title: 'Password is invalid', status: '400'}))
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-2', title: 'Missing parameters', detail: 'Password is invalid', status: '400'}))
   })
 
   it('POST /users | Should not create a new user with already existing username', async () => {
@@ -124,7 +126,7 @@ describe('Users', () => {
     }
 
     await AddUser(user1)
-    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Username already exists', status: '409'}))
+    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Username already exists', status: '409'}))
   })
 
   it('POST /users | Should not create a new user with already existing email', async () => {
@@ -136,7 +138,7 @@ describe('Users', () => {
     }
 
     await AddUser(user1)
-    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Email already exists', status: '409'}))
+    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Email already exists', status: '409'}))
   })
 
   it('GET /users/:username | Should give us the users info', async () => {

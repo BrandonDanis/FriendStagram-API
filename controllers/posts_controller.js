@@ -83,6 +83,11 @@ module.exports.likePost = async ({params: {id = null}, user = null}, res) => {
     await postModel.likePost(postID, user.id)
     res.status(200).json(new Response(null))
   } catch (e) {
+    if (e.code === '23505') {
+      return res.status(412).json(new ErrorResponse(
+        [new Error('Already been liked')]
+      ))
+    }
     console.error(e)
     res.status(500).json(new ErrorResponse(
       [new Error('Failed to like this post')]

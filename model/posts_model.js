@@ -52,6 +52,8 @@ module.exports.search = async ({
 
 module.exports.likePost = (id, userID) => db.insert('post_likes', {'post_id': id, 'user_id': userID}).run()
 
+module.exports.unlikePost = (id, userID) => db.delete('post_likes').where({'post_id': id, 'user_id': userID}).returning('post_id').row()
+
 module.exports.delete = id => db.delete().from('posts').where({id}).run()
 
 // eslint-disable-next-line no-undef

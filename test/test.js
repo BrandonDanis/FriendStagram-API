@@ -278,6 +278,29 @@ describe('Posts', () => {
     VerifyInvalidResponse(res, [{title: 'Already been liked'}], 412)
   })
 
+  it('POST /posts/unlike/:id | Should unlike a post by id', async () => {
+    await AddUser(user1)
+    await AddUser(user2)
+    const token = await LoginUser(user1)
+    const token2 = await LoginUser(user2)
+    const postInfo = await SubmitPost(post, token)
+    await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    const res = await chai.request(server).delete(`/posts/unlike/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    VerifyValidResponse(res)
+  })
+
+  it('POST /posts/unlike/:id | Should fail to unlike an already unliked post', async () => {
+    await AddUser(user1)
+    await AddUser(user2)
+    const token = await LoginUser(user1)
+    const token2 = await LoginUser(user2)
+    const postInfo = await SubmitPost(post, token)
+    await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    await chai.request(server).delete(`/posts/unlike/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    const res = await chai.request(server).delete(`/posts/unlike/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    VerifyInvalidResponse(res, [{title: 'Already been unliked'}], 412)
+  })
+
   it('DELETE /posts | Should delete newly added post', async () => {
     await AddUser(user1)
     const token = await LoginUser(user1)

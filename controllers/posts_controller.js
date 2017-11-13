@@ -95,6 +95,24 @@ module.exports.likePost = async ({params: {id = null}, user = null}, res) => {
   }
 }
 
+module.exports.unlikePost = async ({params: {id = null}, user = null}, res) => {
+  try {
+    const postID = Number(id)
+    await postModel.unlikePost(postID, user.id)
+    res.status(200).json(new Response(null))
+  } catch (e) {
+    if (e.message === 'Expected a row, none found') {
+      return res.status(412).json(new ErrorResponse(
+        [new Error('Already been unliked')]
+      ))
+    }
+    console.error(e)
+    res.status(500).json(new ErrorResponse(
+      [new Error('Failed to unlike this post')]
+    ))
+  }
+}
+
 module.exports.delete = async ({body: {post = null}}, res) => {
   try {
     await postModel.delete(post)

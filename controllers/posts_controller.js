@@ -19,7 +19,7 @@ module.exports.addPosts = async ({body, user = null}, res, next) => {
   }
 }
 
-module.exports.getPostByID = async ({params: id = null}, res, next) => {
+module.exports.getPostByID = async ({params: {id = null}}, res, next) => {
   try {
     const [post, user] = await postModel.getPostByID(id)
     post.user_info = user
@@ -64,9 +64,8 @@ module.exports.search = async (req, res, next) => {
 
 module.exports.likePost = async ({params: {id = null}, user = null}, res, next) => {
   try {
-    const postID = Number(id)
-    await postModel.likePost(postID, user.id)
-    res.status(200).json(new Response(null))
+    await postModel.likePost(id, user.id)
+    return Response.OK(res, null)
   } catch (e) {
     next(e)
   }
@@ -74,9 +73,8 @@ module.exports.likePost = async ({params: {id = null}, user = null}, res, next) 
 
 module.exports.unlikePost = async ({params: {id = null}, user = null}, res, next) => {
   try {
-    const postID = Number(id)
-    await postModel.unlikePost(postID, user.id)
-    res.status(200).json(new Response(null))
+    await postModel.unlikePost(id, user.id)
+    return Response.OK(res, null)
   } catch (e) {
     next(e)
   }

@@ -9,7 +9,7 @@ app.get('/', postsController.search)
 // app.get('/public', postsController.getPublicPosts)
 app.get('/id/:id', postsController.getPostByID)
 app.post('/like/:id', auth.authenticate, postsController.likePost)
-app.delete('/unlike/:id', auth.authenticate, postsController.unlikePost)
+app.delete('/like/:id', auth.authenticate, postsController.unlikePost)
 app.delete('/', auth.authenticate, auth.authorizedToDelete, postsController.delete)
 
 module.exports = app

@@ -1,48 +1,36 @@
 const postModel = require('../model/posts_model')
 const utils = require('../utils/util')
-const {Response, Error, ErrorResponse} = require('../response-types')
+const {Response, FSError} = require('../response-types')
 
-module.exports.addPosts = async (
-  {body: {url = null, description = null, tags = null}, user = null}, res) => {
-  let errors = []
+module.exports.addPosts = async ({body, user = null}, res, next) => {
+  const {url = null, description = null, tags = null} = body
 
-  if (utils.isEmpty(user.id)) {
-    errors.push('User ID is Null')
-  }
-  if (utils.isEmpty(url)) {
-    errors.push('URL is Null')
-  }
-
+  let errors = utils.getMissingKeys(user, [{key: 'id', name: 'user ID'}])
+  errors = errors.concat(utils.getMissingKeys(body, [{key: 'url', name: 'URL'}]))
   if (!errors.isEmpty()) {
-    errors = errors.map(error => new Error(error))
-    res.status(400).json(new ErrorResponse(errors))
-  } else {
-    try {
-      const post = await postModel.addPosts(description, url, tags, user.id)
-      res.status(200).json(new Response(post))
-    } catch (e) {
-      console.error(e)
-      res.status(500).json(new ErrorResponse(
-        [new Error('Failed to create post')]
-      ))
-    }
+    return next(FSError.missingParameters({errors}))
+  }
+
+  try {
+    const post = await postModel.addPosts(description, url, tags, user.id)
+    return Response.OK(res, post)
+  } catch (e) {
+    next(e)
   }
 }
 
-module.exports.getPostByID = async ({params: {id = null}}, res) => {
+module.exports.getPostByID = async ({params: id = null}, res, next) => {
   try {
     const [post, user] = await postModel.getPostByID(id)
     post.user_info = user
-    res.status(200).json(new Response(post))
+    return Response.OK(res, post)
   } catch (e) {
     console.error(e)
-    res.status(404).json(new ErrorResponse(
-      new Error('Failed to find post')
-    ))
+    next(e)
   }
 }
 
-module.exports.search = async (req, res) => {
+module.exports.search = async (req, res, next) => {
   let {page} = req.query
   const {limit, sort, tags} = req.query
   const searchQuery = {}
@@ -68,59 +56,37 @@ module.exports.search = async (req, res) => {
 
   try {
     const posts = await postModel.search(searchQuery)
-    res.status(200).json(new Response(posts))
+    return Response.OK(res, posts)
   } catch (e) {
-    console.error(e)
-    res.status(500).json(new ErrorResponse(
-      [new Error('Failed to search for posts')]
-    ))
+    next(e)
   }
 }
 
-module.exports.likePost = async ({params: {id = null}, user = null}, res) => {
+module.exports.likePost = async ({params: {id = null}, user = null}, res, next) => {
   try {
     const postID = Number(id)
     await postModel.likePost(postID, user.id)
     res.status(200).json(new Response(null))
   } catch (e) {
-    if (e.code === '23505') {
-      return res.status(412).json(new ErrorResponse(
-        [new Error('Already been liked')]
-      ))
-    }
-    console.error(e)
-    res.status(500).json(new ErrorResponse(
-      [new Error('Failed to like this post')]
-    ))
+    next(e)
   }
 }
 
-module.exports.unlikePost = async ({params: {id = null}, user = null}, res) => {
+module.exports.unlikePost = async ({params: {id = null}, user = null}, res, next) => {
   try {
     const postID = Number(id)
     await postModel.unlikePost(postID, user.id)
     res.status(200).json(new Response(null))
   } catch (e) {
-    if (e.message === 'Expected a row, none found') {
-      return res.status(412).json(new ErrorResponse(
-        [new Error('Already been unliked')]
-      ))
-    }
-    console.error(e)
-    res.status(500).json(new ErrorResponse(
-      [new Error('Failed to unlike this post')]
-    ))
+    next(e)
   }
 }
 
-module.exports.delete = async ({body: {post = null}}, res) => {
+module.exports.delete = async ({body: {post = null}}, res, next) => {
   try {
     await postModel.delete(post)
-    res.status(200).json(new Response(null))
+    return Response.OK(res, null)
   } catch (e) {
-    console.error(e)
-    res.status(404).json(new ErrorResponse(
-      [new Error('Failed to delete post')]
-    ))
+    next(e)
   }
 }

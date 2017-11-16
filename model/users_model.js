@@ -1,18 +1,24 @@
-const config = require('../config')
-const db = require('pg-bricks')
-  .configure(config[process.env.NODE_ENV || 'development'])
 const bcrypt = require('bcrypt')
+const uuid = require('uuid')
+
+const config = require('../config')
+const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development'])
+const utils = require('../utils/util')
+const {FSError} = require('../response-types')
 
 // eslint-disable-next-line
 const saltRounds = config.saltRounds
-const uuid = require('uuid')
 
 module.exports.register = async (username, unHashedPassword, email, name) => {
   const allTheSalt = await bcrypt.genSalt(saltRounds)
   const password = await bcrypt.hash(unHashedPassword, allTheSalt, null)
-  return db.insert('users', {
-    username, password, email, name
-  }).returning('*').row()
+  try {
+    return await db.insert('users', {username, password, email, name}).returning('*').row()
+  } catch (e) {
+    if (e.code === '23505') {
+      throw FSError.fieldAlreadyExists({detail: `${utils.capitalize(e.detail.match(/[a-zA-Z]+(?=\))/)[0])} already exists`})
+    }
+  }
 }
 
 module.exports.findUser = async (username) => {
@@ -55,8 +61,13 @@ module.exports.findUser = async (username) => {
       followingIDs.map(({following}) => following)).rows()
   }
 
-  return Promise.all(
-    [userPromise, postsPromise, followersPromise, followingPromise])
+  try {
+    return Promise.all([userPromise, postsPromise, followersPromise, followingPromise])
+  } catch (e) {
+    if (e.message === 'Expected a row, none found') { // user not found
+      throw FSError.userDoesNotExist({detail: 'User not found'})
+    }
+  }
 }
 
 module.exports.findAllUsers = () => db.select(
@@ -68,13 +79,13 @@ module.exports.authenticate = async (id, sessionID) => {
   try {
     await db.select('id').from('users').where({id}).row()
   } catch (e) {
-    throw new Error('User not found')
+    throw FSError.userDoesNotExist()
   }
 
   try {
     await db.select('id').from('users_sessions').where({id: sessionID}).row()
   } catch (e) {
-    throw new Error('User not logged in')
+    throw FSError.userIsNotLoggedIn()
   }
 }
 
@@ -91,7 +102,7 @@ module.exports.login = async (username, password) => {
   const validPssd = await bcrypt.compare(password, possibleUser.password)
 
   if (!validPssd) {
-    throw new Error('Invalid password')
+    throw FSError.invalidPassword()
   }
 
   return db.raw(
@@ -102,7 +113,7 @@ module.exports.login = async (username, password) => {
 module.exports.changePassword = async (id, password, newPassword) => {
   const passwordMatch = await module.exports.comparePasswordByID(id, password)
   if (!passwordMatch) {
-    throw new Error('Invalid password')
+    throw FSError.invalidPassword()
   }
 
   const allTheSalt = await bcrypt.genSalt(saltRounds)
@@ -117,14 +128,18 @@ module.exports.logOffAllOtherSessions = (id, requestedSession) => db.raw(
   'DELETE FROM users_sessions WHERE id NOT IN ($1) AND user_id = $2',
   [requestedSession, id]).run()
 
-module.exports.authorizedToDelete = (postID, id) => {
-  db.select('user_id').from('posts').where({id: postID, user_id: id}).row()
+module.exports.authorizedToDelete = async (postID, id) => {
+  try {
+    await db.select('user_id').from('posts').where({id: postID, user_id: id}).row()
+  } catch (e) {
+    if (e.message.indexOf('Expected a row') > -1) {
+      throw FSError.unauthorized({detail: 'User does not have the right to delete this post'})
+    }
+  }
 }
 
 module.exports.delete = id => db.delete().from('users').where({id}).run()
 
-module.exports.updateProfilePicture = (userId, imageURL) => db.update('users',
-  {profile_picture_url: imageURL}).where('id', userId).run()
+module.exports.updateProfilePicture = (userId, imageURL) => db.update('users', {profile_picture_url: imageURL}).where('id', userId).run()
 
-module.exports.updateBackgroundPicture = (userId, imageURL) => db.update(
-  'users', {profile_background_url: imageURL}).where('id', userId).run()
+module.exports.updateBackgroundPicture = (userId, imageURL) => db.update('users', {profile_background_url: imageURL}).where('id', userId).run()

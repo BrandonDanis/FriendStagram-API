@@ -5,7 +5,7 @@ const codes = [200, 201, 202]
 
 class FSError extends Error {
   constructor ({code, title, detail = '', status = '500'}, extraProps = {}) {
-    super(detail)
+    super(detail === '' ? title : detail)
     this.code = code
     this.title = title
     this.status = status

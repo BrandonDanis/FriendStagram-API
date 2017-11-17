@@ -1,6 +1,8 @@
+const jwt = require('jwt-simple')
+const jdenticon = require('jdenticon')
+
 const userModel = require('../model/users_model')
 const utils = require('../utils/util')
-const jwt = require('jwt-simple')
 const cfg = require('../config')
 const {Response, FSError} = require('../response-types')
 
@@ -34,7 +36,7 @@ module.exports.register = async ({body}, res, next) => {
 
 module.exports.findUser = async ({params: {username = null}}, res, next) => {
   try {
-    const [userInfo, postInfo = [], followersInfo = [], followingInfo = []] = await userModel.findUser(username)
+    const [userInfo, postInfo = [], followersInfo = [], followingInfo = []] = await userModel.findUserByUsername(username)
     userInfo.posts = postInfo.map((post) => {
       const newPost = post
       newPost.url = post.image_url
@@ -141,6 +143,21 @@ module.exports.updateBackgroundPicture = async ({user: {id = null}, body: {image
   try {
     await userModel.updateBackgroundPicture(id, imageURL)
     return Response.OK(res, 'Successfully updated your user profile')
+  } catch (e) {
+    next(e)
+  }
+}
+
+module.exports.getDefaultProfilePicture = async ({user: {id = null}}, res, next) => {
+  try {
+    const [{username, datecreated}] = await userModel.findUserByID(id)
+    const today = new Date()
+    res.set({
+      'Content-Type': 'image/png',
+      'Cache-Control': `max-age=${60 * 60 * 24 * 365}`,
+      'Expires': new Date(today.getFullYear() + 1, today.getMonth(), today.getDate()),
+      'Last-Modified': datecreated
+    }).send(jdenticon.toPng(username, 500))
   } catch (e) {
     next(e)
   }

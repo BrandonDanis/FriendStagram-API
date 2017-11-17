@@ -54,16 +54,8 @@ let Response = {
 Response = statuses.codes.filter(code => codes.some(usedCode => code === usedCode)).map(code => {
   // Generates each function
   const functionName = statuses[code].replace(/[^a-zA-Z]/g, '')
-  if (code >= 400 && code < 600) {
-    return {
-      [functionName]: (res, error) => {
-        error.status = String(code)
-        res.status(code).json({data: null, error})
-      }
-    }
-  }
   return {
-    [functionName]: (res, data) => { res.status(code).json({data, error: {}}) }
+    [functionName]: (res, data) => { res.status(code).json({data, error: null}) }
   }
 }).reduce((obj, funcObj) => {
   // Moving each generated function into one big object instead of using an array

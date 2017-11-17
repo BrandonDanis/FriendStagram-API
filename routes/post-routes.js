@@ -9,7 +9,6 @@ app.get('/', postsController.search)
 // app.get('/public', postsController.getPublicPosts)
 app.get('/id/:id', postsController.getPostByID)
 
-app.delete('/', auth.authenticate, auth.authorizedToDelete,
-  postsController.delete)
+app.delete('/', auth.authenticate, auth.authorizedToDelete, postsController.delete)
 
 module.exports = app

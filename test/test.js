@@ -7,6 +7,7 @@ const chai = require('chai')
 const chaiHttp = require('chai-http')
 const server = require('../index')
 const beforeEach = require('mocha').beforeEach
+const {FSError} = require('../response-types')
 
 const should = chai.should()
 
@@ -46,9 +47,9 @@ const AddUser = async (user) => {
   return res.body.data.username
 }
 
-const AddInvalidUser = async (user, errors) => {
+const AddInvalidUser = async (user, error) => {
   const res = await chai.request(server).post('/users/').send(user)
-  VerifyInvalidResponse(res, errors, 409)
+  VerifyInvalidResponse(res, error, 409)
 }
 
 const LoginUser = async (user) => {
@@ -66,21 +67,23 @@ const EmptyDatabase = (callback) => {
 const VerifyValidResponse = (res, status = 200) => {
   res.should.have.status(status)
   res.body.should.be.a('object')
-  res.body.should.have.property('errors')
-  res.body.errors.length.should.be.eql(0)
+  res.body.should.have.property('error')
+  should.not.exist(res.body.error)
   res.body.should.have.property('data')
 }
 
-const VerifyInvalidResponse = (res, errors, status) => {
+const VerifyInvalidResponse = (res, error) => {
   should.exist(res)
-  res.should.have.status(status)
+  res.should.have.status(error.status)
   res.body.should.be.a('object')
-  res.body.should.have.property('errors')
-  res.body.errors.length.should.be.eql(errors.length)
-  errors.forEach((error, i) => {
-    res.body.errors[i].should.have.property('title')
-    res.body.errors[i].should.have.property('title').eql(error.title)
-  })
+  res.body.should.have.property('error')
+  res.body.error.should.be.a('object')
+  res.body.error.should.have.property('code')
+  res.body.error.should.have.property('title')
+  res.body.error.should.have.property('detail')
+  res.body.error.code.should.be.eql(error.code)
+  res.body.error.title.should.be.eql(error.title)
+  res.body.error.detail.should.be.eql(error.detail)
 }
 
 describe('Users', () => {
@@ -99,9 +102,8 @@ describe('Users', () => {
       name: 'Brandon Danis'
     }
 
-    chai.request(server).post('/users/').send(invalidUser).end((err, res) => {
-      VerifyInvalidResponse(err, res, [{title: 'Username is null'}], 401, () => {})
-    })
+    const res = await chai.request(server).post('/users/').send(invalidUser)
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-2', title: 'Missing parameters', detail: 'Username is invalid', status: '400'}))
   })
 
   it('POST /users | Should not create a user with no password', async () => {
@@ -112,7 +114,7 @@ describe('Users', () => {
     }
 
     const res = await chai.request(server).post('/users/').send(invalidUser)
-    VerifyInvalidResponse(res, [{title: 'Password is null'}], 401)
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-2', title: 'Missing parameters', detail: 'Password is invalid', status: '400'}))
   })
 
   it('POST /users | Should not create a new user with already existing username', async () => {
@@ -124,7 +126,7 @@ describe('Users', () => {
     }
 
     await AddUser(user1)
-    await AddInvalidUser(invalidUser, [{title: 'Username already exists'}])
+    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Username already exists', status: '409'}))
   })
 
   it('POST /users | Should not create a new user with already existing email', async () => {
@@ -136,7 +138,7 @@ describe('Users', () => {
     }
 
     await AddUser(user1)
-    await AddInvalidUser(invalidUser, [{title: 'Email already exists'}])
+    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Email already exists', status: '409'}))
   })
 
   it('GET /users/:username | Should give us the users info', async () => {
@@ -197,15 +199,12 @@ describe('Users', () => {
   })
 })
 
-const SubmitPost = async (post, token, callback) => {
+const SubmitPost = async (post, token) => {
   const res = await chai.request(server).post('/posts').set('token', token).send(post)
   VerifyValidResponse(res)
-  const data = res.body.data
-  if (callback) {
-    return callback(data)
-  }
-  return data
+  return res.body.data
 }
+
 describe('Posts', () => {
   beforeEach((done) => {
     EmptyDatabase(() => {
@@ -242,7 +241,7 @@ describe('Posts', () => {
     await AddUser(user1)
     await LoginUser(user1)
     const res = await chai.request(server).post('/posts').send(post)
-    VerifyInvalidResponse(res, [{title: 'Bad token'}], 401)
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-4', title: 'Bad token', status: '401'}))
   })
 
   it('GET /posts/id/:id | Should get a post by id', async () => {
@@ -271,7 +270,7 @@ describe('Posts', () => {
     const token = await LoginUser(user1)
     const postInfo = await SubmitPost(post, token)
     const res = await chai.request(server).delete('/posts/').send({post: postInfo.id})
-    VerifyInvalidResponse(res, [{title: 'Bad token'}], 401)
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-4', title: 'Bad token', status: '401'}))
   })
 })
 
@@ -280,6 +279,7 @@ const FollowUser = async (token, userIdToFollow) => {
   VerifyValidResponse(res)
   res.body.should.have.property('data').eql('Now Following')
 }
+
 describe('Follow', () => {
   beforeEach((done) => {
     EmptyDatabase(() => {
@@ -314,7 +314,7 @@ describe('Follow', () => {
     await AddUser(user1)
     const token = await LoginUser(user1)
     const res = await chai.request(server).post('/follow').set('token', token).send({followUsername: 'rushil'})
-    VerifyInvalidResponse(res, [{title: 'User doesn\'t exist'}], 401)
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-1', title: 'User doesn\'t exist', status: '401'}))
   })
 
   it('POST /follow | User should be told if already following another user', async () => {

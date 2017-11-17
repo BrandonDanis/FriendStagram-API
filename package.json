@@ -37,6 +37,7 @@
     "passport-jwt": "^2.1.0",
     "pg-bricks": "^0.6.0",
     "rx": "^4.1.0",
+    "statuses": "^1.4.0",
     "uuid": "^2.0.3"
   },
   "devDependencies": {

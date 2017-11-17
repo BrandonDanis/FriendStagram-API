@@ -8,13 +8,10 @@ app.delete('/', auth.authenticate, usersController.delete)
 
 app.post('/login', usersController.login)
 app.get('/logoff', auth.authenticate, usersController.logOff)
-app.get('/logoffallothersessions', auth.authenticate,
-  usersController.logOffAllOtherSessions)
+app.get('/logoffallothersessions', auth.authenticate, usersController.logOffAllOtherSessions)
 
-app.put('/profile_picture', auth.authenticate,
-  usersController.updateProfilePicture)
-app.put('/background_picture', auth.authenticate,
-  usersController.updateBackgroundPicture)
+app.put('/profile_picture', auth.authenticate, usersController.updateProfilePicture)
+app.put('/background_picture', auth.authenticate, usersController.updateBackgroundPicture)
 
 app.get('/:username', usersController.findUser)
 app.put('/:username', auth.authenticate, usersController.changeUser)

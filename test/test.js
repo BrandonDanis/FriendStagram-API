@@ -68,7 +68,7 @@ const VerifyValidResponse = (res, status = 200) => {
   res.should.have.status(status)
   res.body.should.be.a('object')
   res.body.should.have.property('error')
-  res.body.error.should.be.eql({})
+  should.not.exist(res.body.error)
   res.body.should.have.property('data')
 }
 

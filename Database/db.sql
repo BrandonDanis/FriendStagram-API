@@ -53,12 +53,11 @@ CREATE TABLE posts (
 
 DROP TABLE IF EXISTS post_likes;
 CREATE TABLE post_likes (
-  id      SERIAL,
   post_id INTEGER,
   user_id INTEGER,
   FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
   FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
-  PRIMARY KEY (id)
+  PRIMARY KEY (post_id, user_id)
 );
 
 DROP TABLE IF EXISTS post_tags;

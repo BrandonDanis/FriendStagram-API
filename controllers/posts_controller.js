@@ -19,7 +19,7 @@ module.exports.addPosts = async ({body, user = null}, res, next) => {
   }
 }
 
-module.exports.getPostByID = async ({params: id = null}, res, next) => {
+module.exports.getPostByID = async ({params: {id = null}}, res, next) => {
   try {
     const [post, user] = await postModel.getPostByID(id)
     post.user_info = user
@@ -57,6 +57,24 @@ module.exports.search = async (req, res, next) => {
   try {
     const posts = await postModel.search(searchQuery)
     return Response.OK(res, posts)
+  } catch (e) {
+    next(e)
+  }
+}
+
+module.exports.likePost = async ({params: {id = null}, user = null}, res, next) => {
+  try {
+    await postModel.likePost(id, user.id)
+    return Response.OK(res, null)
+  } catch (e) {
+    next(e)
+  }
+}
+
+module.exports.unlikePost = async ({params: {id = null}, user = null}, res, next) => {
+  try {
+    await postModel.unlikePost(id, user.id)
+    return Response.OK(res, null)
   } catch (e) {
     next(e)
   }

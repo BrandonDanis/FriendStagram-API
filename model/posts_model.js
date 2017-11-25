@@ -1,11 +1,11 @@
 const config = require('../config')
-const db = require('pg-bricks')
-  .configure(config[process.env.NODE_ENV || 'development'])
+const db = require('pg-bricks').configure(config[process.env.NODE_ENV || 'development'])
+const {FSError} = require('../response-types')
 
 module.exports.addPosts = (description, url, tags, owner) => db.insert('posts',
   {description, image_url: url, user_id: owner}).returning('*').row()
 
-module.exports.getPostByID = ({id}) => {
+module.exports.getPostByID = (id) => {
   const getPost = db.select('p.id AS post_id', 'p.description', 'p.image_url')
     .from('posts as p')
     .join('users u')
@@ -48,6 +48,26 @@ module.exports.search = async ({
     .where($in('t.name', tags)).rows() : undefined
 
   return getPosts(postIDs)
+}
+
+module.exports.likePost = async (id, userID) => {
+  try {
+    await db.insert('post_likes', {'post_id': id, 'user_id': userID}).run()
+  } catch (e) {
+    if (e.code === '23505') {
+      throw FSError.fieldAlreadyExists({detail: 'Already been liked'})
+    }
+  }
+}
+
+module.exports.unlikePost = async (id, userID) => {
+  try {
+    await db.delete('post_likes').where({'post_id': id, 'user_id': userID}).returning('post_id').row()
+  } catch (e) {
+    if (e.message === 'Expected a row, none found') {
+      throw FSError.fieldAlreadyExists({detail: 'Already been unliked'})
+    }
+  }
 }
 
 module.exports.delete = id => db.delete().from('posts').where({id}).run()

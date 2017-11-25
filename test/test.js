@@ -82,7 +82,7 @@ const VerifyValidResponse = (res, status = 200) => {
   res.should.have.status(status)
   res.body.should.be.a('object')
   res.body.should.have.property('error')
-  res.body.error.should.be.eql({})
+  should.not.exist(res.body.error)
   res.body.should.have.property('data')
 }
 
@@ -288,6 +288,50 @@ describe('Posts', () => {
     res.body.data.should.have.property('description').eql(post.description)
     res.body.data.should.have.property('image_url')
     res.body.data.should.have.property('image_url').eql(post.url)
+  })
+
+  it('POST /posts/like/:id | Should like a post by id', async () => {
+    await AddUser(user1)
+    await AddUser(user2)
+    const token = await LoginUser(user1)
+    const token2 = await LoginUser(user2)
+    const postInfo = await SubmitPost(post, token)
+    const res = await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    VerifyValidResponse(res)
+  })
+
+  it('POST /posts/like/:id | Should fail to like an already liked post', async () => {
+    await AddUser(user1)
+    await AddUser(user2)
+    const token = await LoginUser(user1)
+    const token2 = await LoginUser(user2)
+    const postInfo = await SubmitPost(post, token)
+    await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    const res = await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Already been liked', status: '409'}))
+  })
+
+  it('DELETE /posts/like/:id | Should unlike a post by id', async () => {
+    await AddUser(user1)
+    await AddUser(user2)
+    const token = await LoginUser(user1)
+    const token2 = await LoginUser(user2)
+    const postInfo = await SubmitPost(post, token)
+    await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    const res = await chai.request(server).delete(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    VerifyValidResponse(res)
+  })
+
+  it('POST /posts/unlike/:id | Should fail to unlike an already unliked post', async () => {
+    await AddUser(user1)
+    await AddUser(user2)
+    const token = await LoginUser(user1)
+    const token2 = await LoginUser(user2)
+    const postInfo = await SubmitPost(post, token)
+    await chai.request(server).post(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    await chai.request(server).delete(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    const res = await chai.request(server).delete(`/posts/like/${postInfo.id}`).set('token', token2).send({id: postInfo.id})
+    VerifyInvalidResponse(res, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Already been unliked', status: '409'}))
   })
 
   it('DELETE /posts | Should delete newly added post', async () => {

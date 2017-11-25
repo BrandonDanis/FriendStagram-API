@@ -5,6 +5,7 @@ process.env.NODE_ENV = 'test'
 const db = require('pg-bricks').configure(process.env.TEST_DB_URL)
 const chai = require('chai')
 const chaiHttp = require('chai-http')
+const fs = require('fs')
 const server = require('../index')
 const beforeEach = require('mocha').beforeEach
 const {FSError} = require('../response-types')
@@ -57,6 +58,19 @@ const LoginUser = async (user) => {
   VerifyValidResponse(res)
   return res.body.data
 }
+
+const BinaryParser = (res, cb) => {
+  res.setEncoding('binary')
+  res.data = ''
+  res.on('data', function (chunk) {
+    res.data += chunk
+  })
+  res.on('end', function () {
+    cb(null, Buffer.from(res.data, 'binary'))
+  })
+}
+
+const base64Encode = (buffer) => buffer.toString('base64')
 
 const EmptyDatabase = (callback) => {
   db.delete().from('users').run((err) => {
@@ -126,7 +140,12 @@ describe('Users', () => {
     }
 
     await AddUser(user1)
-    await AddInvalidUser(invalidUser, new FSError({code: 'FS-ERR-3', title: 'Field already exists', detail: 'Username already exists', status: '409'}))
+    await AddInvalidUser(invalidUser, new FSError({
+      code: 'FS-ERR-3',
+      title: 'Field already exists',
+      detail: 'Username already exists',
+      status: '409'
+    }))
   })
 
   it('POST /users | Should not create a new user with already existing email', async () => {
@@ -196,6 +215,21 @@ describe('Users', () => {
     VerifyValidResponse(res, 202)
     res.body.data.should.have.property('profile_background_url')
     res.body.data.should.have.property('profile_background_url').eql(imageUrl)
+  })
+
+  it('GET /users/default_profile_picture | Should return a user\'s default profile picture', async () => {
+    const encodedTestPicture = base64Encode(Buffer.from(fs.readFileSync('test/default_profile_picture.png')))
+    await AddUser(user1)
+    const token = await LoginUser(user1)
+    const res = await chai.request(server)
+      .get('/users/default_profile_picture')
+      .set('token', token)
+      .buffer()
+      .parse(BinaryParser)
+    res.should.have.status(200)
+    res.should.have.header('Content-Type')
+    res.header['content-type'].should.be.eql('image/png')
+    base64Encode(res.body).should.be.eql(encodedTestPicture)
   })
 })
 

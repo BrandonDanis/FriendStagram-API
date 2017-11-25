@@ -21,7 +21,7 @@ module.exports.register = async (username, unHashedPassword, email, name) => {
   }
 }
 
-module.exports.findUser = async (username) => {
+module.exports.findUserByUsername = async (username) => {
   const userPromise = db.select([
     'name',
     'username',
@@ -62,7 +62,18 @@ module.exports.findUser = async (username) => {
   }
 
   try {
-    return Promise.all([userPromise, postsPromise, followersPromise, followingPromise])
+    return await Promise.all([userPromise, postsPromise, followersPromise, followingPromise])
+  } catch (e) {
+    if (e.message === 'Expected a row, none found') { // user not found
+      throw FSError.userDoesNotExist({detail: 'User not found'})
+    }
+  }
+}
+
+module.exports.findUserByID = async (id) => {
+  try {
+    const {username} = await db.select('username').from('users').where({id}).row()
+    return module.exports.findUserByUsername(username)
   } catch (e) {
     if (e.message === 'Expected a row, none found') { // user not found
       throw FSError.userDoesNotExist({detail: 'User not found'})

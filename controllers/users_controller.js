@@ -64,14 +64,14 @@ module.exports.login = async ({body}, res, next) => {
   }
 
   try {
-    const {id: uuid, user_id: userID} = await userModel.login(username, password)
+    const {id: uuid, user_id: userID, verified, profile_picture_url} = await userModel.login(username, password)
     const payload = {
       id: userID,
       timestamp: new Date(),
       uuid
     }
     const token = jwt.encode(payload, cfg.jwtSecret)
-    return Response.OK(res, token)
+    return Response.OK(res, {token, verified, profile_picture_url})
   } catch (e) {
     if (e.message === 'Require key') {
       console.error('jwtSecret is missing')

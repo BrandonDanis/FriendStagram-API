@@ -106,19 +106,20 @@ module.exports.comparePasswordByID = async (id, password) => {
 }
 
 module.exports.login = async (username, password) => {
-  const possibleUser = await db.select(['username', 'password'])
+  const {id: userID, password: hashedPassword, verified, profile_picture_url} = await db
+    .select(['id', 'password', 'verified', 'profile_picture_url'])
     .from('users')
     .where({username})
     .row()
-  const validPssd = await bcrypt.compare(password, possibleUser.password)
+  const validPassword = await bcrypt.compare(password, hashedPassword)
 
-  if (!validPssd) {
+  if (!validPassword) {
     throw FSError.invalidPassword()
   }
 
-  return db.raw(
-    'INSERT INTO users_sessions VALUES($1, (SELECT id FROM users WHERE username = $2)) RETURNING *;',
-    [uuid.v4(), username]).row()
+  const uuidStr = uuid.v4()
+  await db.raw('INSERT INTO users_sessions VALUES ($1, $2);', [uuidStr, userID]).run()
+  return {id: uuidStr, user_id: userID, verified, profile_picture_url}
 }
 
 module.exports.changePassword = async (id, password, newPassword) => {

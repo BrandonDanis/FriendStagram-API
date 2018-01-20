@@ -148,9 +148,9 @@ module.exports.updateBackgroundPicture = async ({user: {id = null}, body: {image
   }
 }
 
-module.exports.getDefaultProfilePicture = async ({user: {id = null}}, res, next) => {
+module.exports.getDefaultProfilePicture = async ({query: {username = null}}, res, next) => {
   try {
-    const [{username, datecreated}] = await userModel.findUserByID(id)
+    const [{datecreated}] = await userModel.findUserByUsername(username);
     const today = new Date()
     res.set({
       'Content-Type': 'image/png',

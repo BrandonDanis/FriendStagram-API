@@ -1,3 +1,5 @@
+CREATE EXTENSION pg_trgm;
+
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
   id                        SERIAL,
@@ -14,6 +16,8 @@ CREATE TABLE users (
   UNIQUE (username, email),
   PRIMARY KEY (id)
 );
+CREATE INDEX users_name_trigram_idx ON users USING GIST (name gist_trgm_ops);
+CREATE INDEX users_username_trigram_idx ON users USING GIST (username gist_trgm_ops);
 
 DROP TABLE IF EXISTS users_sessions;
 CREATE TABLE users_sessions (

@@ -117,6 +117,29 @@ module.exports.changePassword = async (id, password, newPassword) => {
   return db.update('users').set('password', hashedPassword).where({id}).run()
 }
 
+module.exports.changeUser = async (id, updateObj) => {
+  const {old_password: oldPassword, new_password: newPassword} = updateObj
+  const passwordMatch = await module.exports.comparePasswordByID(id, oldPassword)
+  if (!passwordMatch) {
+    throw FSError.invalidPassword()
+  }
+
+  const promises = []
+  if (newPassword) {
+    promises.push(module.exports.changePassword(id, oldPassword, newPassword))
+  }
+  delete updateObj.old_password
+  delete updateObj.new_password
+
+  const keys = Object.keys(updateObj)
+  const query = `UPDATE users SET ${keys.map((key, index) => `${key} = $${index + 1}`).join(', ')} WHERE id = $${keys.length + 1};`
+  const params = keys.map(key => updateObj[key])
+  params.push(id)
+  promises.push(db.raw(query, params).run())
+
+  await Promise.all(promises)
+}
+
 module.exports.search = query => db.raw('SELECT username, name, email, profile_picture_url FROM users, similarity(name, $1) AS name_similarity, similarity(username, $1) AS username_similarity WHERE (name % $1 OR username % $1) AND profile_picture_url IS NOT NULL ORDER BY name_similarity DESC, username_similarity DESC', [query]).rows()
 
 module.exports.logOff = id => db.delete('users_sessions').where({id}).run()

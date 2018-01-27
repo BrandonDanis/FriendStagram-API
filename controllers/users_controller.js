@@ -83,16 +83,15 @@ module.exports.login = async ({body}, res, next) => {
 
 module.exports.changeUser = async ({user, body}, res, next) => {
   const {id} = user
-  const {old_password: oldPassword, new_password: newPassword} = body
 
   let errors = utils.getMissingKeys(user, [{key: 'id', name: 'user ID'}])
-  errors = errors.concat(utils.getMissingKeys(body, [{key: 'old_password', name: 'old password'}, {key: 'new_password', name: 'new password'}]))
+  errors = errors.concat(utils.getMissingKeys(body, [{key: 'old_password', name: 'old password'}]))
   if (!errors.isEmpty()) {
     return next(FSError.missingParameters({errors}))
   }
 
   try {
-    await userModel.changePassword(id, oldPassword, newPassword)
+    await userModel.changeUser(id, body)
     return Response.OK(res, {title: 'Successfully updated user'})
   } catch (e) {
     next(e)
@@ -151,7 +150,7 @@ module.exports.updateBackgroundPicture = async ({user: {id = null}, body: {image
 
 module.exports.getDefaultProfilePicture = async ({query: {username = null}}, res, next) => {
   try {
-    const [{datecreated}] = await userModel.findUserByUsername(username);
+    const [{datecreated}] = await userModel.findUserByUsername(username)
     const today = new Date()
     res.set({
       'Content-Type': 'image/png',

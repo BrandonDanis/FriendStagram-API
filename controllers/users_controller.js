@@ -75,8 +75,9 @@ module.exports.login = async ({body}, res, next) => {
   } catch (e) {
     if (e.message === 'Require key') {
       console.error('jwtSecret is missing')
+      return next(FSError.unknown())
     }
-    next(FSError.unknown())
+    next(e)
   }
 }
 

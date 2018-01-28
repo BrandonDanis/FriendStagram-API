@@ -92,7 +92,7 @@ module.exports.changeUser = async ({user, body}, res, next) => {
 
   try {
     await userModel.changeUser(id, body)
-    return Response.OK(res, {title: 'Successfully updated user'})
+    return Response.OK(res, 'Successfully updated user')
   } catch (e) {
     next(e)
   }
